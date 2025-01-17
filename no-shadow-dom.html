@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Marquee (No Shadow DOM)</title>
+    <style>
+        .marquee-container {
+            display: block;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            width: 100%;
+            height: 100%; /* FOR VERTICAL SCROLLING */
+        }
+        #marquee-content {
+            white-space: nowrap;
+            will-change: transform;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html">New Marquee with Shadow DOM >>></a>
+    <section class="marquee-container" data-direction="left" data-speed="60" data-pauseonhover="true" data-persistent="true">
+        <div id="marquee-content" style="display: flex; align-items: center;">
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit dicta culpa accusantium, repellat fuga molestias quos officia nihil eveniet commodi sed sunt eaque reprehenderit inventore quis, impedit facilis eligendi incidunt!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos. Corporis nobis, doloribus modi eius eaque repellendus molestias tempore ratione est nemo?</p><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquam enim labore perferendis illum dolorum nam, ab, corrupti laborum exercitationem placeat, voluptatibus eius. Saepe totam fuga delectus! Libero fuga nam ipsam!</p>
+        </div>
+    </section>
+    <script src="new-marquee-no-shadow-dom.js">
+
+    </script>
+</body>
+</html>
