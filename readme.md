@@ -15,9 +15,9 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### With <new-marquee> Shadow DOM Element
 
-**With CDN**: <div>https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js</div>
+**With CDN**: <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">
 <br/>
-**Use Locally Without CDN**: Get it from https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
+**Use Locally Without CDN**: https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
     <new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
         <div style="display: flex; align-items: center;">
@@ -27,9 +27,9 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### Without Shadow DOM Element
 
-**With CDN**: <div>https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js</div>
+**With CDN**: <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">
 <br/>
-**Use Locally Without CDN**: Get it from https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
+**Use Locally Without CDN**: https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
     <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
         <div id="new-marquee-content" style="display: flex; align-items: center;">
