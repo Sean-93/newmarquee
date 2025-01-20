@@ -33,7 +33,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
 - Make sure to include this CSS if you are not using the Shadow-DOM <new-marquee> element:
 
-    ```<style>
+    ```
         .new-marquee-container {
             display: block;
             max-width: 100%;
@@ -47,7 +47,6 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
             will-change: transform;
             display: inline-block;
         }
-    </style>
 
 **With CDN**:
 <br>
