@@ -9,7 +9,7 @@ class NewMarquee extends HTMLElement {
         // SET INTERNAL STYLES AND HTML FOR THE COMPONENT
         this.shadowRoot.innerHTML = `
             <style>
-                .marquee-container {
+                .new-marquee-container {
                     display: block;
                     max-width: 100%;
                     margin: 0 auto;
@@ -17,20 +17,20 @@ class NewMarquee extends HTMLElement {
                     width: 100%;
                     height: 100%; /* FOR VERTICAL SCROLLING */
                 }
-                #marquee-content {
+                #new-marquee-content {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
                 }
             </style>
-            <section class="marquee-container">
-                <div id="marquee-content">
+            <section class="new-marquee-container">
+                <div id="new-marquee-content">
                     <slot></slot> <!-- PLACEHOLDER FOR USER CONTENT -->
                 </div>
             </section>
         `;
         // REFERENCE TO THE MARQUEE CONTENT ELEMENT
-        this.marqueeContent = this.shadowRoot.querySelector('#marquee-content');
+        this.marqueeContent = this.shadowRoot.querySelector('#new-marquee-content');
     }
 
     connectedCallback() {
@@ -118,7 +118,7 @@ class NewMarquee extends HTMLElement {
         // DETERMINE CONTENT AND CONTAINER DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
-        const container = this.shadowRoot.querySelector('.marquee-container');
+        const container = this.shadowRoot.querySelector('.new-marquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
