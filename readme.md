@@ -1,10 +1,10 @@
 # New Marquee
 
-New Marquee is a small JavaScript library that allows you to use marquee-like functionality without using the deprecated <marquee> tag.  The primary way to use this is to use the <new-marquee> custom Shadow-DOM component privided, but there is also an alternate version where you can assign the ID to any HTML element.
+New Marquee is a small JavaScript library that allows you to use marquee-like functionality without using the deprecated marquee tag.  The primary way to use this is to use the <new-marquee> custom Shadow-DOM component privided, but there is also an alternate version where you can assign the ID to any HTML element.
 
 ## Features
 
-- **Marquee Functionality**: New Marquee allows you to have the same or better functionality than using the deprecated <marquee> tag
+- **Marquee Functionality**: New Marquee allows you to have the same or better functionality than using the deprecated marquee tag
 - **Seamless Animation**: The content emerges from one side of the screen, scrolls away, and then once it has completely scrolled away, the content seamlessly re-emerges from the other side
 - **Adjustable Speed**: Allows for variable speed
 - **Four Directions**: Supports four directions - up, down, left, and right
