@@ -15,9 +15,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### With <new-marquee> Shadow DOM Element
 
-**With CDN**: ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">
-```
+**With CDN**: ```html<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">```
 <br/>
 **Use Locally Without CDN**: https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
@@ -29,9 +27,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### Without Shadow DOM Element
 
-**With CDN**: ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">
-```
+**With CDN**: ```html<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js">```
 <br/>
 **Use Locally Without CDN**: https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
