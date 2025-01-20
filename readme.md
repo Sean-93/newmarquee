@@ -13,7 +13,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ## Usage
 
--The primary way to use this is to use the custom Shadow-DOM 'new-marquee' component provided, but there is also an alternate version where you can assign the 'new-marquee-content' ID to any HTML element that is the child of an element that has 'new-marquee-container' as a CSS class.
+- The primary way to use this is to use the custom Shadow-DOM 'new-marquee' component provided, but there is also an alternate version where you can assign the 'new-marquee-content' ID to any HTML element that is the child of an element that has 'new-marquee-container' as a CSS class.
 
 ### With 'new-marquee' Shadow DOM Element
 
