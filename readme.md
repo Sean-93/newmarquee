@@ -42,6 +42,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
             width: 100%;
             height: 100%;
         }
+        
         #new-marquee-content {
             white-space: nowrap;
             will-change: transform;
