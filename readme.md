@@ -1,6 +1,6 @@
 # New Marquee
 
-New Marquee is a small JavaScript library that allows you to use marquee-like functionality without using the deprecated marquee tag.  The primary way to use this is to use the <new-marquee> custom Shadow-DOM component privided, but there is also an alternate version where you can assign the ID to any HTML element.
+New Marquee is a small JavaScript library that allows you to use marquee-like functionality without using the deprecated < marquee > tag.  The primary way to use this is to use the custom Shadow-DOM 'new-marquee' component provided, but there is also an alternate version where you can assign the 'new-marquee-content' ID to any HTML element that is the child of an element that has 'new-marquee-container' as a CSS class.
 
 ## Features
 
@@ -13,7 +13,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ## Usage
 
-### With <new-marquee> Shadow DOM Element
+### With 'new-marquee' Shadow DOM Element
 
 **With CDN**:
 <br>
@@ -31,7 +31,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
 ### Without Shadow DOM Element
 
-- Make sure to include this CSS if you are not using the Shadow-DOM <new-marquee> element:
+- Make sure to include this CSS if you are not using the Shadow-DOM 'new-marquee' element:
 
     ```
         .new-marquee-container {
@@ -42,7 +42,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
             width: 100%;
             height: 100%;
         }
-        
+
         #new-marquee-content {
             white-space: nowrap;
             will-change: transform;
