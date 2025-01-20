@@ -23,11 +23,11 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 <br>
 https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
-    ```<new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
+    <new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
         <div style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
-    </new-marquee>```
+    </new-marquee>
 
 ### Without Shadow DOM Element
 
@@ -47,7 +47,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
             will-change: transform;
             display: inline-block;
         }
-    </style>```
+    </style>
 
 **With CDN**:
 <br>
@@ -57,11 +57,11 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 <br>
 https://github.com/Sean-93/new-marquee/blob/main/no-shadow-dom.js
 
-    ```<section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
+    <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
         <div id="new-marquee-content" style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
-    </section>```
+    </section>
 
 ## Default Direction
 
