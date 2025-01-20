@@ -15,7 +15,8 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### With <new-marquee> Shadow DOM Element
 
-**With CDN**: Use the CDN - https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
+**With CDN**: Use the CDN - <code>https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js</code>
+<br/>
 **Without CDN**: Want to use this code locally?  Get it from https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
     <new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
@@ -26,7 +27,8 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### Without Shadow DOM Element
 
-**With CDN**: Use the CDN - https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
+**With CDN**: Use the CDN - <code>https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js</code>
+<br/>
 **Without CDN**: Want to use this code locally?  Get it from https://cdn.jsdelivr.net/gh/githubUser/example@1.0.0/main.js
 
     <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
@@ -34,8 +36,6 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
     </section>
-
-4. **Download Files**: Click on the generated download links to save each modified file.
 
 ## Default Direction
 
