@@ -15,7 +15,7 @@ class NewMarquee extends HTMLElement {
                     margin: 0 auto;
                     overflow: hidden;
                     width: 100%;
-                    height: 100%; /* FOR VERTICAL SCROLLING */
+                    height: 100%;
                 }
                 #new-marquee-content {
                     white-space: nowrap;

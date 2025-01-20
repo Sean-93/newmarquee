@@ -31,6 +31,24 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
 ### Without Shadow DOM Element
 
+- Make sure to include this CSS if you are not using the Shadow-DOM <new-marquee> element:
+
+    <style>
+        .new-marquee-container {
+            display: block;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        #new-marquee-content {
+            white-space: nowrap;
+            will-change: transform;
+            display: inline-block;
+        }
+    </style>
+
 **With CDN**:
 <br>
 ```<script src="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/no-shadow-dom-min.js"></script>```

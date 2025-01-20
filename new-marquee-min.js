@@ -6,7 +6,7 @@ const RTL_LANGUAGES=["ar","he","fa","ur","yi","ps","dv","ug","syr"];class NewMar
                     margin: 0 auto;
                     overflow: hidden;
                     width: 100%;
-                    height: 100%; /* FOR VERTICAL SCROLLING */
+                    height: 100%;
                 }
                 #new-marquee-content {
                     white-space: nowrap;
