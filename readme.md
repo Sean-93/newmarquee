@@ -15,9 +15,13 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### With <new-marquee> Shadow DOM Element
 
-**With CDN**: ```<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/new-marquee-min.js">```
-<br/>
-**Use Locally Without CDN**: https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
+**With CDN**:
+<br>
+```<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/new-marquee-min.js">```
+<br>
+**Use Locally Without CDN**:
+<br>
+https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
     <new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
         <div style="display: flex; align-items: center;">
@@ -27,9 +31,13 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ### Without Shadow DOM Element
 
-**With CDN**: ```<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/no-shadow-dom-min.js">```
-<br/>
-**Use Locally Without CDN**: https://github.com/Sean-93/new-marquee/blob/main/no-shadow-dom.js
+**With CDN**:
+<br>
+```<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/no-shadow-dom-min.js">```
+<br>
+**Use Locally Without CDN**:
+<br>
+https://github.com/Sean-93/new-marquee/blob/main/no-shadow-dom.js
 
     <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
         <div id="new-marquee-content" style="display: flex; align-items: center;">
