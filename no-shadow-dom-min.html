@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- WATER CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
-        <!-- WATER CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
-        <!-- CUSTOM STYLES -->
-        <link rel="stylesheet" href="/styles.css">
-    <title>No Shadow DOM</title>
+    <!-- CUSTOM STYLES -->
+    <link rel="stylesheet" href="/styles.css">
+    <title>No Shadow DOM (min)</title>
     <style>
         .marquee-container {
             display: block;
@@ -26,28 +25,27 @@
     </style>
 </head>
 <body>
-    <h1>New Marquee - No Shadow DOM</h1>
-    <p>This is the version of New Marquee using the unminified Javascript source code that does not use the "new-marquee" Shadow DOM component.</p>
+    <h1>New Marquee - No Shadow DOM (Min)</h1>
+    <p>This is the version of New Marquee using minfied JavaScript that does not use the "new-marquee" Shadow DOM component.</p>
     <h2>
         Minified JS
     </h2>
     <p>New Marquee running on minified JS:</p>
     <a href="new-marquee-min.html">New Marquee (min) >>></a>
-    <br/>
-    <p>New Marquee without the "new-marquee" Shadow DOM component running on minified JS:</p>
-    <a href="no-shadow-dom-min.html">New Marquee no Shadow DOM (min) >>></a>
-    <br/>
     <h2>
         Non-Minified JS
     </h2>
     <p>New Marquee running on source code JS:</p>
     <a href="/">New Marquee (source) >>></a>
+    <br/>
+    <p>New Marquee without the "new-marquee" Shadow DOM component running on source code JS:</p>
+    <a href="no-shadow-dom.html">New Marquee no Shadow DOM (source) >>></a>
     <section class="marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
         <div id="marquee-content" style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
     </section>
-    <script src="no-shadow-dom.js">
+    <script src="no-shadow-dom-min.js">
 
     </script>
 </body>
