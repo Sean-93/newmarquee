@@ -8,7 +8,6 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 - **Seamless Animation**: The content emerges from one side of the screen, scrolls away, and then once it has completely scrolled away, the content seamlessly re-emerges from the other side
 - **Adjustable Speed**: Allows for variable speed
 - **Four Directions**: Supports four directions - up, down, left, and right
-- **Persistance Between Pages**: Optional persistance between pages where the animation will seamlessly continue when navigating to another page that has an identical use of New Marquee
 - **Pause on Hover**: Optional pause of marquee scrolling animation when hovering over the New Marquee content - resumes when no longer hovering
 
 ## Usage
@@ -25,7 +24,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 <br>
 https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
-    <new-marquee speed="150" direction="left" persistent="true" pauseonhover="true">
+    <new-marquee speed="150" direction="left" pauseonhover="true">
         <div style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
@@ -59,7 +58,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 <br>
 https://github.com/Sean-93/new-marquee/blob/main/no-shadow-dom.js
 
-    <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true" data-persistent="true">
+    <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true">
         <div id="new-marquee-content" style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>

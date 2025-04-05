@@ -1,12 +1,11 @@
-// CERTAIN LANGUAGES READ RIGHT TO LEFT PRIMARILY ON DIGITAL DEVICES, WHICH WILL SWITCH THE DEFAULT DIRECTION TO ACCOMODATE
+// CERTAIN LANGUAGES READ RIGHT TO LEFT PRIMARILY ON DIGITAL DEVICES, WHICH WILL SWITCH THE DEFAULT DIRECTION TO ACCOMMODATE
 const RTL_LANGUAGES = ["ar", "he", "fa", "ur", "yi", "ps", "dv", "ug", "syr"];
 
 class NewMarquee extends HTMLElement {
     constructor() {
         super();
-        // ATTACH A SHADOW DOM
+        // CREATE SHADOW ROOT AND SET INNER HTML TEMPLATE
         this.attachShadow({ mode: 'open' });
-        // SET INTERNAL STYLES AND HTML FOR THE COMPONENT
         this.shadowRoot.innerHTML = `
             <style>
                 .new-marquee-container {
@@ -25,24 +24,30 @@ class NewMarquee extends HTMLElement {
             </style>
             <section class="new-marquee-container">
                 <div id="new-marquee-content">
-                    <slot></slot> <!-- PLACEHOLDER FOR USER CONTENT -->
+                    <slot></slot>
                 </div>
             </section>
         `;
-        // REFERENCE TO THE MARQUEE CONTENT ELEMENT
+
+        // REFERENCE TO MARQUEE CONTENT ELEMENT
         this.marqueeContent = this.shadowRoot.querySelector('#new-marquee-content');
+
+        // TRACK PAUSE START TIME AND DURATION
+        this.pauseStartTime = 0;
+        this.pauseDuration = 0;
     }
 
     connectedCallback() {
-        // ENSURE IMAGES ARE LOADED BEFORE ANIMATION
+        // ENSURE IMAGES ARE LOADED BEFORE STARTING ANIMATION
         this.ensureImagesLoaded(() => {
             this.setDefaultDirection();
             this.animateMarquee();
+
             // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES
             this.resizeListener = this.animateMarquee.bind(this);
             window.addEventListener('resize', this.resizeListener);
 
-            // ADD EVENT LISTENERS FOR PAUSE ON HOVER IF ENABLED
+            // ADD HOVER EVENT LISTENERS IF ENABLED
             if (this.getAttribute('pauseonhover') === 'true') {
                 this.addHoverListeners();
             }
@@ -57,23 +62,23 @@ class NewMarquee extends HTMLElement {
     }
 
     disconnectedCallback() {
-        // REMOVE EVENT LISTENERS WHEN ELEMENT IS REMOVED
+        // REMOVE WINDOW RESIZE LISTENER
         if (this.resizeListener) {
             window.removeEventListener('resize', this.resizeListener);
         }
 
-        // REMOVE HOVER EVENT LISTENERS
+        // REMOVE HOVER LISTENERS IF ENABLED
         if (this.getAttribute('pauseonhover') === 'true') {
             this.removeHoverListeners();
         }
 
-        // CANCEL ONGOING ANIMATIONS TO PREVENT RESOURCE LEAKS
+        // CANCEL ANIMATION
         if (this.currentAnimation) {
             this.currentAnimation.cancel();
             this.currentAnimation = null;
         }
 
-        // CLEAR ANY INTERVALS
+        // CLEAR PROGRESS INTERVAL IF USED
         if (this.progressUpdateInterval) {
             clearInterval(this.progressUpdateInterval);
         }
@@ -101,7 +106,7 @@ class NewMarquee extends HTMLElement {
     }
 
     setDefaultDirection() {
-        // GET THE LANGUAGE FROM THE DOCUMENT
+        // GET DOCUMENT LANGUAGE
         const htmlLang = document.documentElement.lang;
 
         // VALID DIRECTION VALUES
@@ -125,29 +130,9 @@ class NewMarquee extends HTMLElement {
         // READ SPEED ATTRIBUTE OR USE DEFAULT
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
+
         // READ DIRECTION ATTRIBUTE OR DEFAULT TO 'LEFT'
         const direction = this.getAttribute('direction') || 'left';
-        // READ PERSISTENT ATTRIBUTE
-        const isPersistent = this.getAttribute('persistent')?.trim().toLowerCase() === 'true';
-        const storageKey = `${this.tagName.toLowerCase()}-state`;
-
-        // CHECK IF PERSISTENT STATE EXISTS
-        let savedTime = 0;
-        let lastSavedTimestamp = 0;
-        if (isPersistent) {
-            let savedState;
-            try {
-                savedState = localStorage.getItem(storageKey);
-                if (savedState) savedState = JSON.parse(savedState);
-            } catch (error) {
-                console.error('Error parsing saved state:', error);
-                savedState = null;
-            }
-            if (savedState) {
-                savedTime = parseFloat(savedState.time);
-                lastSavedTimestamp = parseFloat(savedState.timestamp);
-            }
-        }
 
         // INITIALIZE VARIABLES
         let animationDuration, keyframes;
@@ -184,34 +169,11 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        // PERFORM THE ANIMATION AND HANDLE PERSISTENCE
+        // PERFORM THE ANIMATION
         const animation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity
         });
-
-        // RESTORE SAVED TIME WITH DYNAMIC FORWARD OFFSET AND CLOCK SYNCHRONIZATION
-        if (isPersistent) {
-            if (isFinite(savedTime)) {
-                const now = Date.now();
-                const elapsedSinceSave = Math.max(0, now - lastSavedTimestamp);
-                const adjustedTime = (savedTime + elapsedSinceSave) % (animationDuration * 1000);
-                animation.currentTime = adjustedTime;
-            }
-
-            const updateProgress = (() => {
-                let lastExecutionTime = 0;
-                return () => {
-                    const now = Date.now();
-                    if (now - lastExecutionTime >= Math.min(animationDuration * 100, 1000)) {
-                        lastExecutionTime = now;
-                        const progress = animation.currentTime % (animationDuration * 1000);
-                        localStorage.setItem(storageKey, JSON.stringify({ time: progress, timestamp: Date.now() }));
-                    }
-                };
-            })();
-            this.progressUpdateInterval = setInterval(updateProgress, 500);
-        }
 
         // SAVE ANIMATION INSTANCE FOR HOVER EVENTS
         this.currentAnimation = animation;
@@ -220,11 +182,21 @@ class NewMarquee extends HTMLElement {
     addHoverListeners() {
         // PAUSE THE ANIMATION ON MOUSE ENTER
         this.pauseAnimation = () => {
-            if (this.currentAnimation) this.currentAnimation.pause();
+            if (this.currentAnimation) {
+                this.currentAnimation.pause();
+                this.pauseStartTime = Date.now();
+            }
         };
+
+        // RESUME THE ANIMATION ON MOUSE LEAVE
         this.resumeAnimation = () => {
-            if (this.currentAnimation) this.currentAnimation.play();
+            if (this.currentAnimation) {
+                this.currentAnimation.play();
+                this.pauseDuration += Date.now() - this.pauseStartTime;
+            }
         };
+
+        // ADD EVENT LISTENERS TO MARQUEE CONTENT
         this.marqueeContent.addEventListener('mouseenter', this.pauseAnimation);
         this.marqueeContent.addEventListener('mouseleave', this.resumeAnimation);
     }
@@ -236,5 +208,5 @@ class NewMarquee extends HTMLElement {
     }
 }
 
-// DEFINE THE CUSTOM ELEMENT
+// REGISTER THE CUSTOM ELEMENT
 customElements.define('new-marquee', NewMarquee);

@@ -9,7 +9,6 @@ class Marquee {
 
         // INITIALIZE STATE VARIABLES
         this.currentAnimation = null;
-        this.progressUpdateInterval = null;
         this.resizeListener = null;
         this.languageChangeTimeout = null;
 
@@ -77,27 +76,6 @@ class Marquee {
         const speed = parseInt(this.container.dataset.speed, 10) || DEFAULT_SPEED;
         // READ DIRECTION ATTRIBUTE OR DEFAULT TO 'LEFT'
         const direction = this.container.dataset.direction || 'left';
-        // READ PERSISTENT ATTRIBUTE
-        const isPersistent = this.container.dataset.persistent?.trim().toLowerCase() === 'true';
-        const storageKey = `${this.container.id || 'marquee'}-state`;
-
-        // CHECK IF PERSISTENT STATE EXISTS
-        let savedTime = 0;
-        let lastSavedTimestamp = 0;
-        if (isPersistent) {
-            let savedState;
-            try {
-                savedState = localStorage.getItem(storageKey);
-                if (savedState) savedState = JSON.parse(savedState);
-            } catch (error) {
-                console.error('Error parsing saved state:', error);
-                savedState = null;
-            }
-            if (savedState) {
-                savedTime = parseFloat(savedState.time);
-                lastSavedTimestamp = parseFloat(savedState.timestamp);
-            }
-        }
 
         // INITIALIZE VARIABLES
         let animationDuration, keyframes;
@@ -134,34 +112,11 @@ class Marquee {
                 break;
         }
 
-        // PERFORM THE ANIMATION AND HANDLE PERSISTENCE
+        // PERFORM THE ANIMATION
         const animation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity
         });
-
-        // RESTORE SAVED TIME WITH DYNAMIC FORWARD OFFSET AND CLOCK SYNCHRONIZATION
-        if (isPersistent) {
-            if (isFinite(savedTime)) {
-                const now = Date.now();
-                const elapsedSinceSave = Math.max(0, now - lastSavedTimestamp);
-                const adjustedTime = (savedTime + elapsedSinceSave) % (animationDuration * 1000);
-                animation.currentTime = adjustedTime;
-            }
-
-            const updateProgress = (() => {
-                let lastExecutionTime = 0;
-                return () => {
-                    const now = Date.now();
-                    if (now - lastExecutionTime >= Math.min(animationDuration * 100, 1000)) {
-                        lastExecutionTime = now;
-                        const progress = animation.currentTime % (animationDuration * 1000);
-                        localStorage.setItem(storageKey, JSON.stringify({ time: progress, timestamp: Date.now() }));
-                    }
-                };
-            })();
-            this.progressUpdateInterval = setInterval(updateProgress, 500);
-        }
 
         // SAVE ANIMATION INSTANCE FOR HOVER EVENTS
         this.currentAnimation = animation;
@@ -200,11 +155,6 @@ class Marquee {
         if (this.currentAnimation) {
             this.currentAnimation.cancel();
             this.currentAnimation = null;
-        }
-
-        // CLEAR ANY INTERVALS
-        if (this.progressUpdateInterval) {
-            clearInterval(this.progressUpdateInterval);
         }
 
         // DISCONNECT LANGUAGE OBSERVER
