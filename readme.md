@@ -12,17 +12,17 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ## Usage
 
-- The primary way to use this is with the custom Shadow-DOM 'new-marquee' component provided, but there is also an alternate version where you can assign the 'new-marquee-content' ID to any HTML element that is the child of an element that has 'new-marquee-container' as a CSS class.
+- The primary way to use this is with the custom Shadow-DOM 'newmarquee' component provided, but there is also an alternate version where you can assign the 'newmarquee-content' ID to any HTML element that is the child of an element that has 'newmarquee-container' as a CSS class.
 
-### With 'new-marquee' Shadow DOM Element
+### With 'newmarquee' Shadow DOM Element
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/new-marquee-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@1.0.0/newmarquee-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
-https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
+https://github.com/Sean-93/newmarquee/blob/main/newmarquee.js
 
     <new-marquee speed="150" direction="left" pauseonhover="true">
         <div style="display: flex; align-items: center;">
@@ -32,10 +32,10 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
 ### Without Shadow DOM Element
 
-- Make sure to include this CSS if you are not using the Shadow-DOM 'new-marquee' element:
+- Make sure to include this CSS if you are not using the Shadow-DOM 'newmarquee' element:
 
     ```
-        .new-marquee-container {
+        .newmarquee-container {
             display: block;
             max-width: 100%;
             margin: 0 auto;
@@ -44,7 +44,7 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
             height: 100%;
         }
 
-        #new-marquee-content {
+        #newmarquee-content {
             white-space: nowrap;
             will-change: transform;
             display: inline-block;
@@ -52,14 +52,14 @@ https://github.com/Sean-93/new-marquee/blob/main/new-marquee.js
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/new-marquee@1.0.0/no-shadow-dom-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@1.0.0/no-shadow-dom-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
-https://github.com/Sean-93/new-marquee/blob/main/no-shadow-dom.js
+https://github.com/Sean-93/newmarquee/blob/main/no-shadow-dom.js
 
-    <section class="new-marquee-container" data-direction="left" data-speed="150" data-pauseonhover="true">
-        <div id="new-marquee-content" style="display: flex; align-items: center;">
+    <section class="newmarquee-container" data-direction="left" data-speed="150" data-pauseonhover="true">
+        <div id="newmarquee-content" style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
     </section>

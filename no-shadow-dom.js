@@ -5,7 +5,7 @@ class Marquee {
     constructor(container) {
         // REFERENCE TO THE CONTAINER AND CONTENT ELEMENTS
         this.container = container;
-        this.marqueeContent = container.querySelector('#new-marquee-content');
+        this.marqueeContent = container.querySelector('#newmarquee-content');
 
         // INITIALIZE STATE VARIABLES
         this.currentAnimation = null;
@@ -166,7 +166,7 @@ class Marquee {
 
 // FUNCTION TO INITIALIZE MARQUEE INSTANCES
 function initializeMarquees() {
-    document.querySelectorAll('.new-marquee-container').forEach(container => {
+    document.querySelectorAll('.newmarquee-container').forEach(container => {
         new Marquee(container);
     });
 }

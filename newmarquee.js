@@ -8,7 +8,7 @@ class NewMarquee extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.innerHTML = `
             <style>
-                .new-marquee-container {
+                .newmarquee-container {
                     display: block;
                     max-width: 100%;
                     margin: 0 auto;
@@ -16,21 +16,21 @@ class NewMarquee extends HTMLElement {
                     width: 100%;
                     height: 100%;
                 }
-                #new-marquee-content {
+                #newmarquee-content {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
                 }
             </style>
-            <section class="new-marquee-container">
-                <div id="new-marquee-content">
+            <section class="newmarquee-container">
+                <div id="newmarquee-content">
                     <slot></slot>
                 </div>
             </section>
         `;
 
         // REFERENCE TO MARQUEE CONTENT ELEMENT
-        this.marqueeContent = this.shadowRoot.querySelector('#new-marquee-content');
+        this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
 
         // TRACK PAUSE START TIME AND DURATION
         this.pauseStartTime = 0;
@@ -123,7 +123,7 @@ class NewMarquee extends HTMLElement {
         // DETERMINE CONTENT AND CONTAINER DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
-        const container = this.shadowRoot.querySelector('.new-marquee-container');
+        const container = this.shadowRoot.querySelector('.newmarquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
