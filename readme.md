@@ -18,7 +18,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@1.0.0/newmarquee-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/newmarquee-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
@@ -52,7 +52,7 @@ https://github.com/Sean-93/newmarquee/blob/main/newmarquee.js
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@1.0.0/no-shadow-dom-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/no-shadow-dom-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
