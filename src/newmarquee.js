@@ -20,6 +20,7 @@ class NewMarquee extends HTMLElement {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
+                    visibility: hidden; /* NEW */
                 }
             </style>
             <section class="newmarquee-container">
@@ -149,8 +150,13 @@ class NewMarquee extends HTMLElement {
         // INITIALIZE VARIABLES
         let animationDuration, keyframes;
 
+        // SHOW CONTENT ONCE DIMENSIONS ARE KNOWN
+        this.marqueeContent.style.visibility = 'visible';
+
+        // POSITION CONTENT BASED ON DIRECTION TO AVOID FLASHING
         switch (direction) {
             case 'right':
+                this.marqueeContent.style.transform = `translateX(-${marqueeWidth}px)`;
                 animationDuration = marqueeWidth / speed;
                 keyframes = [
                     { transform: `translateX(-${marqueeWidth}px)` },
@@ -158,6 +164,7 @@ class NewMarquee extends HTMLElement {
                 ];
                 break;
             case 'up':
+                this.marqueeContent.style.transform = `translateY(${containerHeight}px)`;
                 animationDuration = marqueeHeight / speed;
                 keyframes = [
                     { transform: `translateY(${containerHeight}px)` },
@@ -165,6 +172,7 @@ class NewMarquee extends HTMLElement {
                 ];
                 break;
             case 'down':
+                this.marqueeContent.style.transform = `translateY(-${marqueeHeight}px)`;
                 animationDuration = marqueeHeight / speed;
                 keyframes = [
                     { transform: `translateY(-${marqueeHeight}px)` },
@@ -173,6 +181,7 @@ class NewMarquee extends HTMLElement {
                 break;
             case 'left':
             default:
+                this.marqueeContent.style.transform = `translateX(${containerWidth}px)`;
                 animationDuration = marqueeWidth / speed;
                 keyframes = [
                     { transform: `translateX(${containerWidth}px)` },

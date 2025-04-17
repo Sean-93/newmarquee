@@ -15,4 +15,5 @@ a{
     white-space: nowrap;
     will-change: transform;
     display: inline-block;
+    visibility: hidden;
 }
