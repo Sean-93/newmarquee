@@ -18,11 +18,11 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/newmarquee-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/dist/newmarquee-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
-https://github.com/Sean-93/newmarquee/blob/main/newmarquee.js
+https://github.com/Sean-93/newmarquee/blob/main/src/newmarquee.js
 
     <new-marquee speed="150" direction="left" pauseonhover="true">
         <div style="display: flex; align-items: center;">
@@ -52,11 +52,11 @@ https://github.com/Sean-93/newmarquee/blob/main/newmarquee.js
 
 **With CDN**:
 <br>
-```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/no-shadow-dom-min.js"></script>```
+```<script src="https://cdn.jsdelivr.net/gh/Sean-93/newmarquee@0.9.0/dist/no-shadow-dom-min.js"></script>```
 <br>
 **Use Locally Without CDN**:
 <br>
-https://github.com/Sean-93/newmarquee/blob/main/no-shadow-dom.js
+https://github.com/Sean-93/newmarquee/blob/main/src/no-shadow-dom.js
 
     <section class="newmarquee-container" data-direction="left" data-speed="150" data-pauseonhover="true">
         <div id="newmarquee-content" style="display: flex; align-items: center;">
@@ -67,3 +67,5 @@ https://github.com/Sean-93/newmarquee/blob/main/no-shadow-dom.js
 ## Default Direction
 
 - If the direction attribute is left blank or with an invalid value, New Marquee will default to moving left.  The exception is if the HTML Lang attribute on the page is set to a language that primarily reads right to left on digital devices- then, the default will be to move right.
+
+☕️ Find this library helpful or fun? [Buy me a coffee](buymeacoffee.com/seanrooney)
