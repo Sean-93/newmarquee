@@ -20,7 +20,7 @@ class NewMarquee extends HTMLElement {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
-                    visibility: hidden; /* NEW */
+                    visibility: hidden;
                 }
             </style>
             <section class="newmarquee-container">
@@ -50,8 +50,11 @@ class NewMarquee extends HTMLElement {
                 });
             });
 
-            // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES
-            this.resizeListener = this.animateMarquee.bind(this);
+            // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
+            this.resizeListener = () => {
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => this.animateMarquee(), 100);
+            };
             window.addEventListener('resize', this.resizeListener);
 
             // ADD HOVER EVENT LISTENERS IF ENABLED
@@ -127,6 +130,12 @@ class NewMarquee extends HTMLElement {
     }
 
     animateMarquee = () => {
+        // RESPECT USER MOTION PREFERENCES
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            this.marqueeContent.style.visibility = 'visible';
+            return;
+        }
+
         // DETERMINE CONTENT AND CONTAINER DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
