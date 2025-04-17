@@ -41,7 +41,13 @@ class NewMarquee extends HTMLElement {
         // ENSURE IMAGES ARE LOADED BEFORE STARTING ANIMATION
         this.ensureImagesLoaded(() => {
             this.setDefaultDirection();
-            this.animateMarquee();
+
+            // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.animateMarquee();
+                });
+            });
 
             // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES
             this.resizeListener = this.animateMarquee.bind(this);
@@ -126,6 +132,12 @@ class NewMarquee extends HTMLElement {
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
+
+        // SKIP IF LAYOUT HAS NOT STABILIZED YET
+        if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
+            console.warn('Marquee animation skipped: invalid dimensions detected.');
+            return;
+        }
 
         // READ SPEED ATTRIBUTE OR USE DEFAULT
         const DEFAULT_SPEED = 50;
