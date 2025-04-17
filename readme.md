@@ -68,4 +68,4 @@ https://github.com/Sean-93/newmarquee/blob/main/src/no-shadow-dom.js
 
 - If the direction attribute is left blank or with an invalid value, New Marquee will default to moving left.  The exception is if the HTML Lang attribute on the page is set to a language that primarily reads right to left on digital devices- then, the default will be to move right.
 
-☕️ Find this library helpful or fun? [Buy me a coffee](https://buymeacoffee.com/seanrooney)
+☕️ Find this library helpful or fun? <a href="https://buymeacoffee.com/seanrooney" target="_blank">Buy me a coffee</a>
