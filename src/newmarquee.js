@@ -46,11 +46,17 @@ class NewMarquee extends HTMLElement {
                 // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // Only start animation if it's not initialized
-                        if (!this.initialized) {
-                            this.initialized = true;  // Set flag to prevent re-initialization
-                            this.animateMarquee();
-                        }
+                        // Delay a bit more to help Chrome/Android fully stabilize layout
+                        setTimeout(() => {
+                            // Force reflow to lock in dimensions
+                            void this.marqueeContent.offsetHeight;
+
+                            // Only start animation if it's not initialized
+                            if (!this.initialized) {
+                                this.initialized = true;  // Set flag to prevent re-initialization
+                                this.animateMarquee();
+                            }
+                        }, 50); // tweak this if needed
                     });
                 });
 
