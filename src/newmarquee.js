@@ -19,8 +19,7 @@ class NewMarquee extends HTMLElement {
                 #newmarquee-content {
                     white-space: nowrap;
                     will-change: transform;
-                    display: inline-block;
-                    visibility: hidden;
+                    display: none; /* FIX: Hide until layout is stable */
                 }
             </style>
             <section class="newmarquee-container">
@@ -43,21 +42,14 @@ class NewMarquee extends HTMLElement {
             this.ensureImagesLoaded(() => {
                 this.setDefaultDirection();
 
-                // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
+                // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA RAF + TIMEOUT TO PREVENT FLICKER)
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // Delay a bit more to help Chrome/Android fully stabilize layout
-                        setTimeout(() => {
-                            // Force reflow to lock in dimensions
-                            void this.marqueeContent.offsetHeight;
-
-                            // Only start animation if it's not initialized
-                            if (!this.initialized) {
-                                this.initialized = true;  // Set flag to prevent re-initialization
-                                this.animateMarquee();
-                            }
-                        }, 50); // tweak this if needed
-                    });
+                    setTimeout(() => {
+                        if (!this.initialized) {
+                            this.initialized = true;  // Set flag to prevent re-initialization
+                            this.animateMarquee();
+                        }
+                    }, 50); // FIX: Allow layout to stabilize
                 });
 
                 // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
@@ -154,7 +146,7 @@ class NewMarquee extends HTMLElement {
     animateMarquee = () => {
         // RESPECT USER MOTION PREFERENCES
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            this.marqueeContent.style.visibility = 'visible';
+            this.marqueeContent.style.display = 'inline-block';
             return;
         }
 
@@ -182,7 +174,8 @@ class NewMarquee extends HTMLElement {
         let animationDuration, keyframes;
 
         // SHOW CONTENT ONCE DIMENSIONS ARE KNOWN
-        this.marqueeContent.style.visibility = 'visible';
+        this.marqueeContent.style.display = 'inline-block';
+        void this.marqueeContent.offsetWidth; // FIX: Force reflow before animating
 
         // POSITION CONTENT BASED ON DIRECTION TO AVOID FLASHING
         switch (direction) {
