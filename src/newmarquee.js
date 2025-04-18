@@ -82,7 +82,10 @@ class NewMarquee extends HTMLElement {
         // OBSERVE ATTRIBUTE CHANGES FOR LANGUAGE DIRECTION
         this.observer = new MutationObserver(() => {
             if (this.languageChangeTimeout) clearTimeout(this.languageChangeTimeout);
-            this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
+            this.languageChangeTimeout = setTimeout(() => {
+                this.setDefaultDirection();
+                this.animateMarquee();
+            }, 100);
         });
         this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
     }
@@ -136,12 +139,24 @@ class NewMarquee extends HTMLElement {
         const htmlLang = document.documentElement.lang;
 
         // VALID DIRECTION VALUES
-        const validDirections = ["left", "right", "up", "down"];
-        const directionAttr = this.getAttribute('direction');
+        const validDirections = ["left", "right", "up", "down", "auto"];
+        let directionAttr = this.getAttribute('direction');
 
-        // SET DIRECTION TO 'RIGHT' IF LANGUAGE IS RTL AND DIRECTION IS NOT VALID
-        if (RTL_LANGUAGES.includes(htmlLang) && (!directionAttr || !validDirections.includes(directionAttr))) {
-            this.setAttribute('direction', 'right');
+        // DEFAULT TO AUTO IF INVALID DIRECTION
+        if (!validDirections.includes(directionAttr)) {
+            directionAttr = 'auto';
+            this.setAttribute('direction', 'auto');
+        }
+
+        // DETECT LANGUAGE DIRECTION FOR AUTO MODE
+        if (directionAttr === 'auto') {
+            if (RTL_LANGUAGES.includes(htmlLang)) {
+                this.resolvedDirection = 'right';
+            } else {
+                this.resolvedDirection = 'left';
+            }
+        } else {
+            this.resolvedDirection = directionAttr;
         }
     }
 
@@ -178,8 +193,8 @@ class NewMarquee extends HTMLElement {
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
 
-        // READ DIRECTION ATTRIBUTE OR DEFAULT TO 'LEFT'
-        const direction = this.getAttribute('direction') || 'left';
+        // USE RESOLVED DIRECTION (EITHER EXPLICIT OR FROM AUTO LOGIC)
+        const direction = this.resolvedDirection;
 
         // INITIALIZE VARIABLES
         let animationDuration, keyframes;
