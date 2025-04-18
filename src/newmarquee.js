@@ -1,11 +1,15 @@
-// CERTAIN LANGUAGES READ RIGHT TO LEFT PRIMARILY ON DIGITAL DEVICES, WHICH WILL SWITCH THE DEFAULT DIRECTION TO ACCOMMODATE
+// DEFINE RIGHT-TO-LEFT (RTL) LANGUAGES THAT MAY AFFECT DEFAULT DIRECTION
 const RTL_LANGUAGES = ["ar", "he", "fa", "ur", "yi", "ps", "dv", "ug", "syr"];
 
+// DEFINE NEW CUSTOM ELEMENT: NEW-MARQUEE
 class NewMarquee extends HTMLElement {
     constructor() {
         super();
-        // CREATE SHADOW ROOT AND SET INNER HTML TEMPLATE
+
+        // CREATE SHADOW ROOT FOR ENCAPSULATED STYLING AND STRUCTURE
         this.attachShadow({ mode: 'open' });
+
+        // DEFINE HTML STRUCTURE AND STYLES FOR THE MARQUEE INSIDE SHADOW ROOT
         this.shadowRoot.innerHTML = `
             <style>
                 .newmarquee-container {
@@ -20,30 +24,30 @@ class NewMarquee extends HTMLElement {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
-                    visibility: hidden;
+                    visibility: hidden; /* HIDE UNTIL LAYOUT IS STABLE */
                 }
             </style>
             <section class="newmarquee-container">
                 <div id="newmarquee-content">
-                    <slot></slot>
+                    <slot></slot> <!-- ALLOW USER CONTENT -->
                 </div>
             </section>
         `;
 
-        // REFERENCE TO MARQUEE CONTENT ELEMENT
+        // STORE REFERENCE TO THE CONTENT WRAPPER
         this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
 
-        // FLAG TO ENSURE THE ANIMATION ONLY STARTS ONCE
+        // FLAG TO ENSURE ANIMATION STARTS ONLY ONCE
         this.initialized = false;
     }
 
     connectedCallback() {
+        // ENSURE EVERYTHING LOADS INCLUDING IMAGES BEFORE STARTING
         window.addEventListener('load', () => {
-            // ENSURE IMAGES ARE LOADED BEFORE STARTING ANIMATION
             this.ensureImagesLoaded(() => {
                 this.setDefaultDirection();
 
-                // WAIT FOR PAGE TO BE VISIBLE BEFORE ATTEMPTING TO ANIMATE
+                // WAIT UNTIL PAGE IS VISIBLE BEFORE STARTING
                 if (document.visibilityState !== 'visible') {
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'visible') {
@@ -54,7 +58,7 @@ class NewMarquee extends HTMLElement {
                     this.waitForLayoutAndStart();
                 }
 
-                // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
+                // DEBOUNCED RESIZE LISTENER TO RE-CALCULATE MARQUEE
                 this.resizeListener = () => {
                     clearTimeout(this.resizeTimeout);
                     this.resizeTimeout = setTimeout(() => {
@@ -62,24 +66,24 @@ class NewMarquee extends HTMLElement {
                         const containerWidth = container.offsetWidth;
                         const containerHeight = container.offsetHeight;
 
-                        // CHECK IF THE CONTAINER SIZE HAS CHANGED
+                        // IF SIZE CHANGED, RESTART ANIMATION
                         if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
                             this.lastContainerWidth = containerWidth;
                             this.lastContainerHeight = containerHeight;
                             this.animateMarquee();
                         }
-                    }, 200);  // 200MS DEBOUNCE TIME FOR RESIZE EVENT
+                    }, 200);
                 };
                 window.addEventListener('resize', this.resizeListener);
 
-                // ADD HOVER EVENT LISTENERS IF ENABLED
+                // ENABLE HOVER PAUSE IF SPECIFIED
                 if (this.getAttribute('pauseonhover') === 'true') {
                     this.addHoverListeners();
                 }
             });
         });
 
-        // OBSERVE ATTRIBUTE CHANGES FOR LANGUAGE DIRECTION
+        // WATCH FOR LANG ATTRIBUTE CHANGES TO UPDATE DIRECTION
         this.observer = new MutationObserver(() => {
             if (this.languageChangeTimeout) clearTimeout(this.languageChangeTimeout);
             this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
@@ -88,64 +92,38 @@ class NewMarquee extends HTMLElement {
     }
 
     disconnectedCallback() {
-        // REMOVE WINDOW RESIZE LISTENER
-        if (this.resizeListener) {
-            window.removeEventListener('resize', this.resizeListener);
-        }
-
-        // REMOVE HOVER LISTENERS IF ENABLED
-        if (this.getAttribute('pauseonhover') === 'true') {
-            this.removeHoverListeners();
-        }
-
-        // CANCEL ANIMATION
-        if (this.currentAnimation) {
-            this.currentAnimation.cancel();
-            this.currentAnimation = null;
-        }
-
-        // CLEAR PROGRESS INTERVAL IF USED
-        if (this.progressUpdateInterval) {
-            clearInterval(this.progressUpdateInterval);
-        }
-
-        // DISCONNECT LANGUAGE OBSERVER
-        if (this.observer) {
-            this.observer.disconnect();
-        }
+        // CLEAN UP EVENT LISTENERS AND OBSERVERS
+        if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
+        if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
+        if (this.currentAnimation) this.currentAnimation.cancel();
+        if (this.progressUpdateInterval) clearInterval(this.progressUpdateInterval);
+        if (this.observer) this.observer.disconnect();
     }
 
+    // ENSURE ALL IMAGES INSIDE THE SLOT HAVE FINISHED LOADING
     ensureImagesLoaded(callback) {
         const images = this.querySelectorAll('img');
-        const promises = Array.from(images).map(img => {
-            return new Promise(resolve => {
-                if (img.complete && img.naturalHeight !== 0) {
-                    resolve();
-                } else {
-                    img.addEventListener('load', resolve, { once: true });
-                }
-            });
-        });
-        Promise.all(promises).then(callback).catch(error => {
-            console.error('Error loading images:', error);
-        });
+        const promises = Array.from(images).map(img => new Promise(resolve => {
+            if (img.complete && img.naturalHeight !== 0) {
+                resolve();
+            } else {
+                img.addEventListener('load', resolve, { once: true });
+            }
+        }));
+        Promise.all(promises).then(callback).catch(error => console.error('ERROR LOADING IMAGES:', error));
     }
 
+    // SET DEFAULT DIRECTION BASED ON LANGUAGE
     setDefaultDirection() {
-        // GET DOCUMENT LANGUAGE
         const htmlLang = document.documentElement.lang;
-
-        // VALID DIRECTION VALUES
         const validDirections = ["left", "right", "up", "down"];
         const directionAttr = this.getAttribute('direction');
-
-        // SET DIRECTION TO 'RIGHT' IF LANGUAGE IS RTL AND DIRECTION IS NOT VALID
         if (RTL_LANGUAGES.includes(htmlLang) && (!directionAttr || !validDirections.includes(directionAttr))) {
             this.setAttribute('direction', 'right');
         }
     }
 
-    // WAIT FOR LAYOUT TO STABILIZE BEFORE STARTING ANIMATION
+    // WAIT FOR STABLE LAYOUT BEFORE STARTING ANIMATION
     waitForLayoutAndStart() {
         let previousWidth = 0;
         let previousHeight = 0;
@@ -166,7 +144,6 @@ class NewMarquee extends HTMLElement {
             previousHeight = height;
 
             if (stableFrames >= 3) {
-                // LAYOUT IS STABLE FOR 3 CONSECUTIVE FRAMES — START MARQUEE
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         if (!this.initialized) {
@@ -183,26 +160,24 @@ class NewMarquee extends HTMLElement {
         requestAnimationFrame(checkStability);
     }
 
+    // MAIN ANIMATION LOGIC
     animateMarquee = () => {
-        // RESPECT USER MOTION PREFERENCES
+        // RESPECT USER PREFERENCE TO REDUCE MOTION
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.marqueeContent.style.visibility = 'visible';
             return;
         }
 
-        // DETERMINE CONTENT AND CONTAINER DIMENSIONS
+        // GET DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
-        // SKIP IF LAYOUT HAS NOT STABILIZED YET — AND TRY ONCE MORE IF NOT READY
-        if (
-            marqueeWidth === 0 || containerWidth === 0 ||
-            marqueeHeight === 0 || containerHeight === 0
-        ) {
-            console.warn('MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS DETECTED.');
+        // IF DIMENSIONS NOT YET VALID, RETRY ONCE
+        if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
+            console.warn('MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS.');
             if (!this.retriedAnimation) {
                 this.retriedAnimation = true;
                 setTimeout(() => this.animateMarquee(), 100);
@@ -210,22 +185,19 @@ class NewMarquee extends HTMLElement {
             return;
         }
 
-        this.retriedAnimation = false;  // RESET RETRY FLAG
+        this.retriedAnimation = false;
 
-        // READ SPEED ATTRIBUTE OR USE DEFAULT
+        // DETERMINE SPEED AND DIRECTION
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
-
-        // READ DIRECTION ATTRIBUTE OR DEFAULT TO 'LEFT'
         const direction = this.getAttribute('direction') || 'left';
 
-        // INITIALIZE VARIABLES
         let animationDuration, keyframes;
 
-        // SHOW CONTENT ONCE DIMENSIONS ARE KNOWN
+        // MAKE CONTENT VISIBLE NOW THAT DIMENSIONS ARE GOOD
         this.marqueeContent.style.visibility = 'visible';
 
-        // POSITION CONTENT BASED ON DIRECTION TO AVOID FLASHING
+        // POSITION CONTENT BASED ON DIRECTION
         switch (direction) {
             case 'right':
                 this.marqueeContent.style.transform = `translateX(-${marqueeWidth}px)`;
@@ -262,18 +234,18 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        // PERFORM THE ANIMATION
+        // START THE ANIMATION
         const animation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity
         });
 
-        // SAVE ANIMATION INSTANCE FOR HOVER EVENTS
+        // STORE REFERENCE FOR CONTROL (PAUSE/RESUME)
         this.currentAnimation = animation;
     }
 
+    // ADD HOVER EVENT LISTENERS TO PAUSE/RESUME ANIMATION
     addHoverListeners() {
-        // PAUSE THE ANIMATION ON MOUSE ENTER
         this.pauseAnimation = () => {
             if (this.currentAnimation) {
                 this.currentAnimation.pause();
@@ -281,7 +253,6 @@ class NewMarquee extends HTMLElement {
             }
         };
 
-        // RESUME THE ANIMATION ON MOUSE LEAVE
         this.resumeAnimation = () => {
             if (this.currentAnimation) {
                 this.currentAnimation.play();
@@ -289,17 +260,16 @@ class NewMarquee extends HTMLElement {
             }
         };
 
-        // ADD EVENT LISTENERS TO MARQUEE CONTENT
         this.marqueeContent.addEventListener('mouseenter', this.pauseAnimation);
         this.marqueeContent.addEventListener('mouseleave', this.resumeAnimation);
     }
 
+    // REMOVE HOVER EVENT LISTENERS
     removeHoverListeners() {
-        // REMOVE MOUSE ENTER AND LEAVE EVENT LISTENERS
         this.marqueeContent.removeEventListener('mouseenter', this.pauseAnimation);
         this.marqueeContent.removeEventListener('mouseleave', this.resumeAnimation);
     }
 }
 
-// REGISTER THE CUSTOM ELEMENT
+// REGISTER CUSTOM ELEMENT
 customElements.define('new-marquee', NewMarquee);
