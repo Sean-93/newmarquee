@@ -19,7 +19,8 @@ class NewMarquee extends HTMLElement {
                 #newmarquee-content {
                     white-space: nowrap;
                     will-change: transform;
-                    display: none; /* FIX: Hide until layout is stable */
+                    display: inline-block;
+                    visibility: hidden;
                 }
             </style>
             <section class="newmarquee-container">
@@ -42,14 +43,15 @@ class NewMarquee extends HTMLElement {
             this.ensureImagesLoaded(() => {
                 this.setDefaultDirection();
 
-                // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA RAF + TIMEOUT TO PREVENT FLICKER)
+                // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
                 requestAnimationFrame(() => {
-                    setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        // Only start animation if it's not initialized
                         if (!this.initialized) {
                             this.initialized = true;  // Set flag to prevent re-initialization
                             this.animateMarquee();
                         }
-                    }, 50); // FIX: Allow layout to stabilize
+                    });
                 });
 
                 // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
@@ -146,7 +148,7 @@ class NewMarquee extends HTMLElement {
     animateMarquee = () => {
         // RESPECT USER MOTION PREFERENCES
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            this.marqueeContent.style.display = 'inline-block';
+            this.marqueeContent.style.visibility = 'visible';
             return;
         }
 
@@ -157,11 +159,20 @@ class NewMarquee extends HTMLElement {
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
-        // SKIP IF LAYOUT HAS NOT STABILIZED YET
-        if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
+        // SKIP IF LAYOUT HAS NOT STABILIZED YET — AND TRY ONCE MORE IF NOT READY
+        if (
+            marqueeWidth === 0 || containerWidth === 0 ||
+            marqueeHeight === 0 || containerHeight === 0
+        ) {
             console.warn('Marquee animation skipped: invalid dimensions detected.');
+            if (!this.retriedAnimation) {
+                this.retriedAnimation = true;
+                setTimeout(() => this.animateMarquee(), 100);
+            }
             return;
         }
+
+        this.retriedAnimation = false;  // RESET RETRY FLAG
 
         // READ SPEED ATTRIBUTE OR USE DEFAULT
         const DEFAULT_SPEED = 50;
@@ -174,8 +185,7 @@ class NewMarquee extends HTMLElement {
         let animationDuration, keyframes;
 
         // SHOW CONTENT ONCE DIMENSIONS ARE KNOWN
-        this.marqueeContent.style.display = 'inline-block';
-        void this.marqueeContent.offsetWidth; // FIX: Force reflow before animating
+        this.marqueeContent.style.visibility = 'visible';
 
         // POSITION CONTENT BASED ON DIRECTION TO AVOID FLASHING
         switch (direction) {
