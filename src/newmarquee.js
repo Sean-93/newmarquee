@@ -53,7 +53,11 @@ class NewMarquee extends HTMLElement {
             // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    this.animateMarquee();
+                    // Only start the animation if it's not already initialized
+                    if (!this.initialized) {
+                        this.initialized = true;
+                        this.animateMarquee();
+                    }
                 });
             });
 
@@ -70,12 +74,7 @@ class NewMarquee extends HTMLElement {
                     if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
                         this.lastContainerWidth = containerWidth;
                         this.lastContainerHeight = containerHeight;
-
-                        // Prevent initializing animation again if it's already started
-                        if (!this.initialized) {
-                            this.initialized = true;
-                            this.animateMarquee();
-                        }
+                        this.animateMarquee();
                     }
                 }, 200);  // 200ms debounce time for resize event
             };
