@@ -33,15 +33,7 @@ class NewMarquee extends HTMLElement {
         // REFERENCE TO MARQUEE CONTENT ELEMENT
         this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
 
-        // TRACK PAUSE START TIME AND DURATION
-        this.pauseStartTime = 0;
-        this.pauseDuration = 0;
-
-        // Initialize resize state
-        this.lastContainerWidth = 0;
-        this.lastContainerHeight = 0;
-
-        // Flag to ensure animation starts only once
+        // FLAG TO ENSURE THE ANIMATION ONLY STARTS ONCE
         this.initialized = false;
     }
 
@@ -53,9 +45,9 @@ class NewMarquee extends HTMLElement {
             // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    // Only start the animation if it's not already initialized
+                    // Only start animation if it's not initialized
                     if (!this.initialized) {
-                        this.initialized = true;
+                        this.initialized = true;  // Set flag to prevent re-initialization
                         this.animateMarquee();
                     }
                 });
@@ -65,16 +57,16 @@ class NewMarquee extends HTMLElement {
             this.resizeListener = () => {
                 clearTimeout(this.resizeTimeout);
                 this.resizeTimeout = setTimeout(() => {
-                    // ONLY RESTART ANIMATION IF NECESSARY
+                    // Only restart animation if necessary
                     const container = this.shadowRoot.querySelector('.newmarquee-container');
                     const containerWidth = container.offsetWidth;
                     const containerHeight = container.offsetHeight;
 
-                    // Check if the container size has actually changed
+                    // Check if the container size has changed
                     if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
                         this.lastContainerWidth = containerWidth;
                         this.lastContainerHeight = containerHeight;
-                        this.animateMarquee();
+                        this.animateMarquee();  // Restart animation if size changes
                     }
                 }, 200);  // 200ms debounce time for resize event
             };
