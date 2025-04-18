@@ -36,6 +36,10 @@ class NewMarquee extends HTMLElement {
         // TRACK PAUSE START TIME AND DURATION
         this.pauseStartTime = 0;
         this.pauseDuration = 0;
+
+        // Initialize resize state
+        this.lastContainerWidth = 0;
+        this.lastContainerHeight = 0;
     }
 
     connectedCallback() {
@@ -53,7 +57,19 @@ class NewMarquee extends HTMLElement {
             // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
             this.resizeListener = () => {
                 clearTimeout(this.resizeTimeout);
-                this.resizeTimeout = setTimeout(() => this.animateMarquee(), 100);
+                this.resizeTimeout = setTimeout(() => {
+                    // ONLY RESTART ANIMATION IF NECESSARY
+                    const container = this.shadowRoot.querySelector('.newmarquee-container');
+                    const containerWidth = container.offsetWidth;
+                    const containerHeight = container.offsetHeight;
+
+                    // Check if the container size has actually changed
+                    if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
+                        this.lastContainerWidth = containerWidth;
+                        this.lastContainerHeight = containerHeight;
+                        this.animateMarquee();
+                    }
+                }, 200);  // 200ms debounce time for resize event
             };
             window.addEventListener('resize', this.resizeListener);
 
