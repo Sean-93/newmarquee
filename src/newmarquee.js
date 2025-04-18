@@ -42,7 +42,7 @@ class NewMarquee extends HTMLElement {
         this.ensureImagesLoaded(() => {
             this.setDefaultDirection();
 
-            // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE
+            // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     // Only start animation if it's not initialized
