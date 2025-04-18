@@ -38,44 +38,45 @@ class NewMarquee extends HTMLElement {
     }
 
     connectedCallback() {
-        // ENSURE IMAGES ARE LOADED BEFORE STARTING ANIMATION
-        this.ensureImagesLoaded(() => {
-            this.setDefaultDirection();
+        window.addEventListener('load', () => {
+            // ENSURE IMAGES ARE LOADED BEFORE STARTING ANIMATION
+            this.ensureImagesLoaded(() => {
+                this.setDefaultDirection();
 
-            // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
-            requestAnimationFrame(() => {
+                // DEFER ANIMATION UNTIL LAYOUT IS COMPLETE (WITH EXTRA REQUEST ANIMATION FRAMES)
                 requestAnimationFrame(() => {
-                    // Only start animation if it's not initialized
-                    if (!this.initialized) {
-                        this.initialized = true;  // Set flag to prevent re-initialization
-                        this.animateMarquee();
-                    }
+                    requestAnimationFrame(() => {
+                        // Only start animation if it's not initialized
+                        if (!this.initialized) {
+                            this.initialized = true;  // Set flag to prevent re-initialization
+                            this.animateMarquee();
+                        }
+                    });
                 });
+
+                // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
+                this.resizeListener = () => {
+                    clearTimeout(this.resizeTimeout);
+                    this.resizeTimeout = setTimeout(() => {
+                        const container = this.shadowRoot.querySelector('.newmarquee-container');
+                        const containerWidth = container.offsetWidth;
+                        const containerHeight = container.offsetHeight;
+
+                        // Check if the container size has changed
+                        if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
+                            this.lastContainerWidth = containerWidth;
+                            this.lastContainerHeight = containerHeight;
+                            this.animateMarquee();
+                        }
+                    }, 200);  // 200ms debounce time for resize event
+                };
+                window.addEventListener('resize', this.resizeListener);
+
+                // ADD HOVER EVENT LISTENERS IF ENABLED
+                if (this.getAttribute('pauseonhover') === 'true') {
+                    this.addHoverListeners();
+                }
             });
-
-            // RECALCULATE AND REANIMATE WHEN WINDOW RESIZES (DEBOUNCED)
-            this.resizeListener = () => {
-                clearTimeout(this.resizeTimeout);
-                this.resizeTimeout = setTimeout(() => {
-                    // Only restart animation if necessary
-                    const container = this.shadowRoot.querySelector('.newmarquee-container');
-                    const containerWidth = container.offsetWidth;
-                    const containerHeight = container.offsetHeight;
-
-                    // Check if the container size has changed
-                    if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
-                        this.lastContainerWidth = containerWidth;
-                        this.lastContainerHeight = containerHeight;
-                        this.animateMarquee();  // Restart animation if size changes
-                    }
-                }, 200);  // 200ms debounce time for resize event
-            };
-            window.addEventListener('resize', this.resizeListener);
-
-            // ADD HOVER EVENT LISTENERS IF ENABLED
-            if (this.getAttribute('pauseonhover') === 'true') {
-                this.addHoverListeners();
-            }
         });
 
         // OBSERVE ATTRIBUTE CHANGES FOR LANGUAGE DIRECTION
