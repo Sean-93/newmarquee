@@ -40,6 +40,9 @@ class NewMarquee extends HTMLElement {
         // Initialize resize state
         this.lastContainerWidth = 0;
         this.lastContainerHeight = 0;
+
+        // Flag to ensure animation starts only once
+        this.initialized = false;
     }
 
     connectedCallback() {
@@ -67,7 +70,12 @@ class NewMarquee extends HTMLElement {
                     if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
                         this.lastContainerWidth = containerWidth;
                         this.lastContainerHeight = containerHeight;
-                        this.animateMarquee();
+
+                        // Prevent initializing animation again if it's already started
+                        if (!this.initialized) {
+                            this.initialized = true;
+                            this.animateMarquee();
+                        }
                     }
                 }, 200);  // 200ms debounce time for resize event
             };
