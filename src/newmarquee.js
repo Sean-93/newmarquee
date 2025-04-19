@@ -42,48 +42,44 @@ class NewMarquee extends HTMLElement {
     }
 
     connectedCallback() {
-        // ENSURE EVERYTHING LOADS INCLUDING IMAGES BEFORE STARTING
         window.addEventListener('load', () => {
-            this.ensureImagesLoaded(() => {
-                this.setDefaultDirection();
+            this.ensureFontsLoaded(() => {
+                this.ensureImagesLoaded(() => {
+                    this.setDefaultDirection();
 
-                // WAIT UNTIL PAGE IS VISIBLE BEFORE STARTING
-                if (document.visibilityState !== 'visible') {
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.visibilityState === 'visible') {
-                            this.waitForLayoutAndStart();
-                        }
-                    }, { once: true });
-                } else {
-                    this.waitForLayoutAndStart();
-                }
+                    if (document.visibilityState !== 'visible') {
+                        document.addEventListener('visibilitychange', () => {
+                            if (document.visibilityState === 'visible') {
+                                this.waitForLayoutAndStart();
+                            }
+                        }, { once: true });
+                    } else {
+                        this.waitForLayoutAndStart();
+                    }
 
-                // DEBOUNCED RESIZE LISTENER TO RE-CALCULATE MARQUEE
-                this.resizeListener = () => {
-                    clearTimeout(this.resizeTimeout);
-                    this.resizeTimeout = setTimeout(() => {
-                        const container = this.shadowRoot.querySelector('.newmarquee-container');
-                        const containerWidth = container.offsetWidth;
-                        const containerHeight = container.offsetHeight;
+                    this.resizeListener = () => {
+                        clearTimeout(this.resizeTimeout);
+                        this.resizeTimeout = setTimeout(() => {
+                            const container = this.shadowRoot.querySelector('.newmarquee-container');
+                            const containerWidth = container.offsetWidth;
+                            const containerHeight = container.offsetHeight;
 
-                        // IF SIZE CHANGED, RESTART ANIMATION
-                        if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
-                            this.lastContainerWidth = containerWidth;
-                            this.lastContainerHeight = containerHeight;
-                            this.animateMarquee();
-                        }
-                    }, 200);
-                };
-                window.addEventListener('resize', this.resizeListener);
+                            if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
+                                this.lastContainerWidth = containerWidth;
+                                this.lastContainerHeight = containerHeight;
+                                this.animateMarquee();
+                            }
+                        }, 200);
+                    };
+                    window.addEventListener('resize', this.resizeListener);
 
-                // ENABLE HOVER PAUSE IF SPECIFIED
-                if (this.getAttribute('pauseonhover') === 'true') {
-                    this.addHoverListeners();
-                }
+                    if (this.getAttribute('pauseonhover') === 'true') {
+                        this.addHoverListeners();
+                    }
+                });
             });
         });
 
-        // WATCH FOR LANG ATTRIBUTE CHANGES TO UPDATE DIRECTION
         this.observer = new MutationObserver(() => {
             if (this.languageChangeTimeout) clearTimeout(this.languageChangeTimeout);
             this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
@@ -92,7 +88,6 @@ class NewMarquee extends HTMLElement {
     }
 
     disconnectedCallback() {
-        // CLEAN UP EVENT LISTENERS AND OBSERVERS
         if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
         if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
         if (this.currentAnimation) this.currentAnimation.cancel();
@@ -111,6 +106,16 @@ class NewMarquee extends HTMLElement {
             }
         }));
         Promise.all(promises).then(callback).catch(error => console.error('ERROR LOADING IMAGES:', error));
+    }
+
+    // ENSURE FONTS HAVE LOADED BEFORE STARTING LAYOUT-SENSITIVE LOGIC
+    ensureFontsLoaded(callback) {
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(callback);
+        } else {
+            // FALLBACK IN CASE FONTS API NOT SUPPORTED
+            setTimeout(callback, 100);
+        }
     }
 
     // SET DEFAULT DIRECTION BASED ON LANGUAGE
@@ -144,14 +149,19 @@ class NewMarquee extends HTMLElement {
             previousHeight = height;
 
             if (stableFrames >= 3) {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (!this.initialized) {
-                            this.initialized = true;
-                            this.animateMarquee();
-                        }
-                    });
-                });
+                const start = () => {
+                    if (!this.initialized) {
+                        this.initialized = true;
+                        this.animateMarquee();
+                    }
+                };
+
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(() => requestAnimationFrame(start), { timeout: 200 });
+                } else {
+                    requestAnimationFrame(() => requestAnimationFrame(start));
+                }
+
             } else {
                 requestAnimationFrame(checkStability);
             }
@@ -162,20 +172,17 @@ class NewMarquee extends HTMLElement {
 
     // MAIN ANIMATION LOGIC
     animateMarquee = () => {
-        // RESPECT USER PREFERENCE TO REDUCE MOTION
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.marqueeContent.style.visibility = 'visible';
             return;
         }
 
-        // GET DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
-        // IF DIMENSIONS NOT YET VALID, RETRY ONCE
         if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
             console.warn('MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS.');
             if (!this.retriedAnimation) {
@@ -187,17 +194,14 @@ class NewMarquee extends HTMLElement {
 
         this.retriedAnimation = false;
 
-        // DETERMINE SPEED AND DIRECTION
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
         const direction = this.getAttribute('direction') || 'left';
 
         let animationDuration, keyframes;
 
-        // MAKE CONTENT VISIBLE NOW THAT DIMENSIONS ARE GOOD
         this.marqueeContent.style.visibility = 'visible';
 
-        // POSITION CONTENT BASED ON DIRECTION
         switch (direction) {
             case 'right':
                 this.marqueeContent.style.transform = `translateX(-${marqueeWidth}px)`;
@@ -234,13 +238,11 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        // START THE ANIMATION
         const animation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity
         });
 
-        // STORE REFERENCE FOR CONTROL (PAUSE/RESUME)
         this.currentAnimation = animation;
     }
 
