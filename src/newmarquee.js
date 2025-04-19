@@ -25,6 +25,8 @@ class NewMarquee extends HTMLElement {
                     will-change: transform;
                     display: inline-block;
                     visibility: hidden; /* HIDE UNTIL LAYOUT IS STABLE */
+                    transform-style: preserve-3d;
+                    backface-visibility: hidden;
                 }
             </style>
             <section class="newmarquee-container">
@@ -34,57 +36,59 @@ class NewMarquee extends HTMLElement {
             </section>
         `;
 
+        // STORE REFERENCE TO THE CONTENT WRAPPER
         this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
 
-        // FLAGS TO CONTROL INITIALIZATION AND RESIZE HANDLING
+        // FLAG TO ENSURE ANIMATION STARTS ONLY ONCE
         this.initialized = false;
-        this.didStartOnce = false;
-        this.resizeThrottleTimeout = null;
-        this.lastDimensions = { width: null, height: null };
+
+        // FLAG FOR PAUSE STATE
+        this.isPaused = false;
     }
 
     connectedCallback() {
+        // ENSURE EVERYTHING LOADS INCLUDING IMAGES BEFORE STARTING
         window.addEventListener('load', () => {
-            this.ensureFontsLoaded(() => {
-                this.ensureImagesLoaded(() => {
-                    this.setDefaultDirection();
+            this.ensureImagesLoaded(() => {
+                this.setDefaultDirection();
 
-                    if (document.visibilityState !== 'visible') {
-                        document.addEventListener('visibilitychange', () => {
-                            if (document.visibilityState === 'visible') {
-                                this.waitForLayoutAndStart();
-                            }
-                        }, { once: true });
-                    } else {
-                        this.waitForLayoutAndStart();
-                    }
+                // WAIT UNTIL PAGE IS VISIBLE BEFORE STARTING
+                if (document.visibilityState !== 'visible') {
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            this.waitForLayoutAndStart();
+                        }
+                    }, { once: true });
+                } else {
+                    this.waitForLayoutAndStart();
+                }
 
-                    this.resizeListener = () => {
-                        clearTimeout(this.resizeThrottleTimeout);
-                        this.resizeThrottleTimeout = setTimeout(() => {
-                            if (!this.didStartOnce) return; // DON'T INTERRUPT INITIAL RUN
+                // DEBOUNCED RESIZE LISTENER TO RE-CALCULATE MARQUEE
+                this.resizeListener = () => {
+                    clearTimeout(this.resizeTimeout);
+                    this.resizeTimeout = setTimeout(() => {
+                        const container = this.shadowRoot.querySelector('.newmarquee-container');
+                        const containerWidth = container.offsetWidth;
+                        const containerHeight = container.offsetHeight;
 
-                            const container = this.shadowRoot.querySelector('.newmarquee-container');
-                            const newWidth = container.offsetWidth;
-                            const newHeight = container.offsetHeight;
+                        // IF SIZE CHANGED, RESTART ANIMATION
+                        if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
+                            this.lastContainerWidth = containerWidth;
+                            this.lastContainerHeight = containerHeight;
+                            this.fadeMarquee(() => this.animateMarquee());
+                        }
+                    }, 200);
+                };
+                window.addEventListener('resize', this.resizeListener);
 
-                            // ONLY RE-RUN ANIMATION IF SIZE ACTUALLY CHANGED
-                            if (newWidth !== this.lastDimensions.width || newHeight !== this.lastDimensions.height) {
-                                this.lastDimensions = { width: newWidth, height: newHeight };
-                                this.fadeMarquee(() => this.animateMarquee());
-
-                            }
-                        }, 300);
-                    };
-                    window.addEventListener('resize', this.resizeListener);
-
-                    if (this.getAttribute('pauseonhover') === 'true') {
-                        this.addHoverListeners();
-                    }
-                });
+                // ENABLE HOVER PAUSE IF SPECIFIED
+                if (this.getAttribute('pauseonhover') === 'true') {
+                    this.addHoverListeners();
+                }
             });
         });
 
+        // WATCH FOR LANG ATTRIBUTE CHANGES TO UPDATE DIRECTION
         this.observer = new MutationObserver(() => {
             if (this.languageChangeTimeout) clearTimeout(this.languageChangeTimeout);
             this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
@@ -93,9 +97,11 @@ class NewMarquee extends HTMLElement {
     }
 
     disconnectedCallback() {
+        // CLEAN UP EVENT LISTENERS AND OBSERVERS
         if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
         if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
         if (this.currentAnimation) this.currentAnimation.cancel();
+        if (this.progressUpdateInterval) clearInterval(this.progressUpdateInterval);
         if (this.observer) this.observer.disconnect();
     }
 
@@ -110,15 +116,6 @@ class NewMarquee extends HTMLElement {
             }
         }));
         Promise.all(promises).then(callback).catch(error => console.error('ERROR LOADING IMAGES:', error));
-    }
-
-    // ENSURE FONTS HAVE LOADED BEFORE STARTING LAYOUT-SENSITIVE LOGIC
-    ensureFontsLoaded(callback) {
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(callback);
-        } else {
-            setTimeout(callback, 100);
-        }
     }
 
     // SET DEFAULT DIRECTION BASED ON LANGUAGE
@@ -152,20 +149,14 @@ class NewMarquee extends HTMLElement {
             previousHeight = height;
 
             if (stableFrames >= 3) {
-                const start = () => {
-                    if (!this.initialized) {
-                        this.initialized = true;
-                        this.animateMarquee();
-                        this.didStartOnce = true;
-                    }
-                };
-
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(() => requestAnimationFrame(start), { timeout: 200 });
-                } else {
-                    requestAnimationFrame(() => requestAnimationFrame(start));
-                }
-
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (!this.initialized) {
+                            this.initialized = true;
+                            this.fadeMarquee(() => this.animateMarquee());
+                        }
+                    });
+                });
             } else {
                 requestAnimationFrame(checkStability);
             }
@@ -174,19 +165,35 @@ class NewMarquee extends HTMLElement {
         requestAnimationFrame(checkStability);
     }
 
+    // FADE OUT AND FADE IN MARQUEE BEFORE RESTARTING ANIMATION
+    fadeMarquee(callback) {
+        const content = this.shadowRoot.querySelector('#newmarquee-content');
+        content.style.transition = 'opacity 0.5s ease';
+        content.style.opacity = '0';
+
+        content.addEventListener('transitionend', () => {
+            content.style.opacity = '1';
+            content.style.transition = 'none'; // REMOVE TRANSITION FOR THE NEXT ANIMATION CYCLE
+            callback();
+        }, { once: true });
+    }
+
     // MAIN ANIMATION LOGIC
-    animateMarquee = () => {
+    animateMarquee() {
+        // RESPECT USER PREFERENCE TO REDUCE MOTION
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.marqueeContent.style.visibility = 'visible';
             return;
         }
 
+        // GET DIMENSIONS
         const marqueeWidth = this.marqueeContent.scrollWidth;
         const marqueeHeight = this.marqueeContent.scrollHeight;
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
+        // IF DIMENSIONS NOT YET VALID, RETRY ONCE
         if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
             console.warn('MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS.');
             if (!this.retriedAnimation) {
@@ -198,17 +205,17 @@ class NewMarquee extends HTMLElement {
 
         this.retriedAnimation = false;
 
-        // SAVE CURRENT DIMENSIONS TO AVOID RE-RUNNING ON RESIZE
-        this.lastDimensions = { width: containerWidth, height: containerHeight };
-
+        // DETERMINE SPEED AND DIRECTION
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
         const direction = this.getAttribute('direction') || 'left';
 
         let animationDuration, keyframes;
 
+        // MAKE CONTENT VISIBLE NOW THAT DIMENSIONS ARE GOOD
         this.marqueeContent.style.visibility = 'visible';
 
+        // POSITION CONTENT BASED ON DIRECTION
         switch (direction) {
             case 'right':
                 this.marqueeContent.style.transform = `translateX(-${marqueeWidth}px)`;
@@ -245,53 +252,48 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        if (this.currentAnimation) {
-            this.currentAnimation.cancel();
-        }
-
-        this.currentAnimation = this.marqueeContent.animate(keyframes, {
+        // START THE ANIMATION
+        const animation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
-            iterations: Infinity
+            iterations: Infinity,
+            easing: 'linear'
+        });
+
+        this.currentAnimation = animation;
+
+        // REMOVE CURRENT ANIMATION FROM HISTORY AFTER ENDING
+        animation.onfinish = () => {
+            this.currentAnimation = null;
+        };
+    }
+
+    // ADD HOVER LISTENERS TO PAUSE ANIMATION
+    addHoverListeners() {
+        this.marqueeContent.addEventListener('mouseover', () => {
+            if (!this.isPaused) {
+                this.isPaused = true;
+                if (this.currentAnimation) {
+                    this.currentAnimation.pause();
+                }
+            }
+        });
+
+        this.marqueeContent.addEventListener('mouseout', () => {
+            if (this.isPaused) {
+                this.isPaused = false;
+                if (this.currentAnimation) {
+                    this.currentAnimation.play();
+                }
+            }
         });
     }
 
-    // FADE OUT THEN FADE IN CONTENT AROUND ANIMATION RESET
-fadeMarquee(callback) {
-    const content = this.marqueeContent;
-    content.style.transition = 'opacity 0.25s ease';
-    content.style.opacity = '0';
-
-    setTimeout(() => {
-        callback(); // RUN ANIMATION RESET WHILE FADED OUT
-        content.style.opacity = '1';
-
-        // CLEAN UP TRANSITION AFTER COMPLETION
-        setTimeout(() => {
-            content.style.transition = '';
-        }, 300);
-    }, 250);
-}
-
-    // ADD HOVER EVENT LISTENERS TO PAUSE/RESUME ANIMATION
-    addHoverListeners() {
-        this.pauseAnimation = () => {
-            if (this.currentAnimation) this.currentAnimation.pause();
-        };
-
-        this.resumeAnimation = () => {
-            if (this.currentAnimation) this.currentAnimation.play();
-        };
-
-        this.marqueeContent.addEventListener('mouseenter', this.pauseAnimation);
-        this.marqueeContent.addEventListener('mouseleave', this.resumeAnimation);
-    }
-
-    // REMOVE HOVER EVENT LISTENERS
+    // REMOVE HOVER LISTENERS
     removeHoverListeners() {
-        this.marqueeContent.removeEventListener('mouseenter', this.pauseAnimation);
-        this.marqueeContent.removeEventListener('mouseleave', this.resumeAnimation);
+        this.marqueeContent.removeEventListener('mouseover', () => {});
+        this.marqueeContent.removeEventListener('mouseout', () => {});
     }
 }
 
-// REGISTER CUSTOM ELEMENT
+// REGISTER THE CUSTOM ELEMENT
 customElements.define('new-marquee', NewMarquee);
