@@ -71,7 +71,8 @@ class NewMarquee extends HTMLElement {
                             // ONLY RE-RUN ANIMATION IF SIZE ACTUALLY CHANGED
                             if (newWidth !== this.lastDimensions.width || newHeight !== this.lastDimensions.height) {
                                 this.lastDimensions = { width: newWidth, height: newHeight };
-                                this.animateMarquee();
+                                this.fadeMarquee(() => this.animateMarquee());
+
                             }
                         }, 300);
                     };
@@ -253,6 +254,23 @@ class NewMarquee extends HTMLElement {
             iterations: Infinity
         });
     }
+
+    // FADE OUT THEN FADE IN CONTENT AROUND ANIMATION RESET
+fadeMarquee(callback) {
+    const content = this.marqueeContent;
+    content.style.transition = 'opacity 0.25s ease';
+    content.style.opacity = '0';
+
+    setTimeout(() => {
+        callback(); // RUN ANIMATION RESET WHILE FADED OUT
+        content.style.opacity = '1';
+
+        // CLEAN UP TRANSITION AFTER COMPLETION
+        setTimeout(() => {
+            content.style.transition = '';
+        }, 300);
+    }, 250);
+}
 
     // ADD HOVER EVENT LISTENERS TO PAUSE/RESUME ANIMATION
     addHoverListeners() {
