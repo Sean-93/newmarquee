@@ -34,11 +34,13 @@ class NewMarquee extends HTMLElement {
             </section>
         `;
 
-        // STORE REFERENCE TO THE CONTENT WRAPPER
         this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
 
-        // FLAG TO ENSURE ANIMATION STARTS ONLY ONCE
+        // FLAGS TO CONTROL INITIALIZATION AND RESIZE HANDLING
         this.initialized = false;
+        this.didStartOnce = false;
+        this.resizeThrottleTimeout = null;
+        this.lastDimensions = { width: null, height: null };
     }
 
     connectedCallback() {
@@ -58,18 +60,20 @@ class NewMarquee extends HTMLElement {
                     }
 
                     this.resizeListener = () => {
-                        clearTimeout(this.resizeTimeout);
-                        this.resizeTimeout = setTimeout(() => {
-                            const container = this.shadowRoot.querySelector('.newmarquee-container');
-                            const containerWidth = container.offsetWidth;
-                            const containerHeight = container.offsetHeight;
+                        clearTimeout(this.resizeThrottleTimeout);
+                        this.resizeThrottleTimeout = setTimeout(() => {
+                            if (!this.didStartOnce) return; // DON'T INTERRUPT INITIAL RUN
 
-                            if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
-                                this.lastContainerWidth = containerWidth;
-                                this.lastContainerHeight = containerHeight;
+                            const container = this.shadowRoot.querySelector('.newmarquee-container');
+                            const newWidth = container.offsetWidth;
+                            const newHeight = container.offsetHeight;
+
+                            // ONLY RE-RUN ANIMATION IF SIZE ACTUALLY CHANGED
+                            if (newWidth !== this.lastDimensions.width || newHeight !== this.lastDimensions.height) {
+                                this.lastDimensions = { width: newWidth, height: newHeight };
                                 this.animateMarquee();
                             }
-                        }, 200);
+                        }, 300);
                     };
                     window.addEventListener('resize', this.resizeListener);
 
@@ -91,7 +95,6 @@ class NewMarquee extends HTMLElement {
         if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
         if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
         if (this.currentAnimation) this.currentAnimation.cancel();
-        if (this.progressUpdateInterval) clearInterval(this.progressUpdateInterval);
         if (this.observer) this.observer.disconnect();
     }
 
@@ -113,7 +116,6 @@ class NewMarquee extends HTMLElement {
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(callback);
         } else {
-            // FALLBACK IN CASE FONTS API NOT SUPPORTED
             setTimeout(callback, 100);
         }
     }
@@ -153,6 +155,7 @@ class NewMarquee extends HTMLElement {
                     if (!this.initialized) {
                         this.initialized = true;
                         this.animateMarquee();
+                        this.didStartOnce = true;
                     }
                 };
 
@@ -193,6 +196,9 @@ class NewMarquee extends HTMLElement {
         }
 
         this.retriedAnimation = false;
+
+        // SAVE CURRENT DIMENSIONS TO AVOID RE-RUNNING ON RESIZE
+        this.lastDimensions = { width: containerWidth, height: containerHeight };
 
         const DEFAULT_SPEED = 50;
         const speed = parseInt(this.getAttribute('speed'), 10) || DEFAULT_SPEED;
@@ -238,28 +244,24 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        const animation = this.marqueeContent.animate(keyframes, {
+        if (this.currentAnimation) {
+            this.currentAnimation.cancel();
+        }
+
+        this.currentAnimation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity
         });
-
-        this.currentAnimation = animation;
     }
 
     // ADD HOVER EVENT LISTENERS TO PAUSE/RESUME ANIMATION
     addHoverListeners() {
         this.pauseAnimation = () => {
-            if (this.currentAnimation) {
-                this.currentAnimation.pause();
-                this.pauseStartTime = Date.now();
-            }
+            if (this.currentAnimation) this.currentAnimation.pause();
         };
 
         this.resumeAnimation = () => {
-            if (this.currentAnimation) {
-                this.currentAnimation.play();
-                this.pauseDuration += Date.now() - this.pauseStartTime;
-            }
+            if (this.currentAnimation) this.currentAnimation.play();
         };
 
         this.marqueeContent.addEventListener('mouseenter', this.pauseAnimation);
