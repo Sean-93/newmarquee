@@ -1,9 +1,4 @@
-const RTL_LANGUAGES = ["ar", "he", "fa", "ur", "yi", "ps", "dv", "ug", "syr"];
-class NewMarquee extends HTMLElement {
-  constructor() {
-    super(),
-      this.attachShadow({ mode: "open" }),
-      (this.shadowRoot.innerHTML = `
+const RTL_LANGUAGES=["ar","he","fa","ur","yi","ps","dv","ug","syr"];class NewMarquee extends HTMLElement{constructor(){super(),this.attachShadow({mode:"open"}),this.shadowRoot.innerHTML=`
             <style>
                 .newmarquee-container {
                     display: block;
@@ -17,138 +12,14 @@ class NewMarquee extends HTMLElement {
                     white-space: nowrap;
                     will-change: transform;
                     display: inline-block;
+                    visibility: hidden; /* HIDE UNTIL LAYOUT IS STABLE */
+                    transform-style: preserve-3d;
+                    backface-visibility: hidden;
                 }
             </style>
             <section class="newmarquee-container">
                 <div id="newmarquee-content">
-                    <slot></slot>
+                    <slot></slot> <!-- ALLOW USER CONTENT -->
                 </div>
             </section>
-        `),
-      (this.marqueeContent = this.shadowRoot.querySelector(
-        "#newmarquee-content"
-      )),
-      (this.pauseStartTime = 0),
-      (this.pauseDuration = 0);
-  }
-  connectedCallback() {
-    this.ensureImagesLoaded(() => {
-      this.setDefaultDirection(),
-        this.animateMarquee(),
-        (this.resizeListener = this.animateMarquee.bind(this)),
-        window.addEventListener("resize", this.resizeListener),
-        "true" === this.getAttribute("pauseonhover") &&
-          this.addHoverListeners();
-    }),
-      (this.observer = new MutationObserver(() => {
-        this.languageChangeTimeout && clearTimeout(this.languageChangeTimeout),
-          (this.languageChangeTimeout = setTimeout(
-            () => this.setDefaultDirection(),
-            100
-          ));
-      })),
-      this.observer.observe(document.documentElement, {
-        attributes: !0,
-        attributeFilter: ["lang"],
-      });
-  }
-  disconnectedCallback() {
-    this.resizeListener &&
-      window.removeEventListener("resize", this.resizeListener),
-      "true" === this.getAttribute("pauseonhover") &&
-        this.removeHoverListeners(),
-      this.currentAnimation &&
-        (this.currentAnimation.cancel(), (this.currentAnimation = null)),
-      this.progressUpdateInterval && clearInterval(this.progressUpdateInterval),
-      this.observer && this.observer.disconnect();
-  }
-  ensureImagesLoaded(e) {
-    let t = this.querySelectorAll("img"),
-      i = Array.from(t).map(
-        (e) =>
-          new Promise((t) => {
-            e.complete && 0 !== e.naturalHeight
-              ? t()
-              : e.addEventListener("load", t, { once: !0 });
-          })
-      );
-    Promise.all(i)
-      .then(e)
-      .catch((e) => {
-        console.error("Error loading images:", e);
-      });
-  }
-  setDefaultDirection() {
-    let e = document.documentElement.lang,
-      t = this.getAttribute("direction");
-    !RTL_LANGUAGES.includes(e) ||
-      (t && ["left", "right", "up", "down"].includes(t)) ||
-      this.setAttribute("direction", "right");
-  }
-  animateMarquee = () => {
-    let e = this.marqueeContent.scrollWidth,
-      t = this.marqueeContent.scrollHeight,
-      i = this.shadowRoot.querySelector(".newmarquee-container"),
-      n = i.offsetWidth,
-      r = i.offsetHeight,
-      s = parseInt(this.getAttribute("speed"), 10) || 50,
-      a = this.getAttribute("direction") || "left",
-      o,
-      h;
-    switch (a) {
-      case "right":
-        (o = e / s),
-          (h = [
-            { transform: `translateX(-${e}px)` },
-            { transform: `translateX(${n}px)` },
-          ]);
-        break;
-      case "up":
-        (o = t / s),
-          (h = [
-            { transform: `translateY(${r}px)` },
-            { transform: `translateY(-${t}px)` },
-          ]);
-        break;
-      case "down":
-        (o = t / s),
-          (h = [
-            { transform: `translateY(-${t}px)` },
-            { transform: `translateY(${r}px)` },
-          ]);
-        break;
-      default:
-        (o = e / s),
-          (h = [
-            { transform: `translateX(${n}px)` },
-            { transform: `translateX(-${e}px)` },
-          ]);
-    }
-    let u = this.marqueeContent.animate(h, {
-      duration: 1e3 * o,
-      iterations: 1 / 0,
-    });
-    this.currentAnimation = u;
-  };
-  addHoverListeners() {
-    (this.pauseAnimation = () => {
-      this.currentAnimation &&
-        (this.currentAnimation.pause(), (this.pauseStartTime = Date.now()));
-    }),
-      (this.resumeAnimation = () => {
-        this.currentAnimation &&
-          (this.currentAnimation.play(),
-          (this.pauseDuration += Date.now() - this.pauseStartTime));
-      }),
-      this.marqueeContent.addEventListener("mouseenter", this.pauseAnimation),
-      this.marqueeContent.addEventListener("mouseleave", this.resumeAnimation);
-  }
-  removeHoverListeners() {
-    this.marqueeContent.removeEventListener("mouseenter", this.pauseAnimation),
-      this.marqueeContent.removeEventListener(
-        "mouseleave",
-        this.resumeAnimation
-      );
-  }
-}
-customElements.define("new-marquee", NewMarquee);
+        `,this.marqueeContent=this.shadowRoot.querySelector("#newmarquee-content"),this.initialized=!1,this.isPaused=!1}connectedCallback(){window.addEventListener("load",()=>{this.ensureImagesLoaded(()=>{this.setDefaultDirection(),"visible"!==document.visibilityState?document.addEventListener("visibilitychange",()=>{"visible"===document.visibilityState&&this.waitForLayoutAndStart()},{once:!0}):this.waitForLayoutAndStart(),this.resizeListener=()=>{clearTimeout(this.resizeTimeout),this.resizeTimeout=setTimeout(()=>{let e=this.shadowRoot.querySelector(".newmarquee-container"),t=e.offsetWidth,i=e.offsetHeight;(t!==this.lastContainerWidth||i!==this.lastContainerHeight)&&(this.lastContainerWidth=t,this.lastContainerHeight=i,this.fadeMarquee(()=>this.animateMarquee()))},200)},window.addEventListener("resize",this.resizeListener),"true"===this.getAttribute("pauseonhover")&&this.addHoverListeners()})}),this.observer=new MutationObserver(()=>{this.languageChangeTimeout&&clearTimeout(this.languageChangeTimeout),this.languageChangeTimeout=setTimeout(()=>this.setDefaultDirection(),100)}),this.observer.observe(document.documentElement,{attributes:!0,attributeFilter:["lang"]})}disconnectedCallback(){this.resizeListener&&window.removeEventListener("resize",this.resizeListener),"true"===this.getAttribute("pauseonhover")&&this.removeHoverListeners(),this.currentAnimation&&this.currentAnimation.cancel(),this.progressUpdateInterval&&clearInterval(this.progressUpdateInterval),this.observer&&this.observer.disconnect()}ensureImagesLoaded(e){let t=this.querySelectorAll("img"),i=Array.from(t).map(e=>new Promise(t=>{e.complete&&0!==e.naturalHeight?t():e.addEventListener("load",t,{once:!0})}));Promise.all(i).then(e).catch(e=>console.error("ERROR LOADING IMAGES:",e))}setDefaultDirection(){let e=document.documentElement.lang,t=this.getAttribute("direction");!RTL_LANGUAGES.includes(e)||t&&["left","right","up","down"].includes(t)||this.setAttribute("direction","right")}waitForLayoutAndStart(){let e=0,t=0,i=0,s=()=>{let n=this.shadowRoot.querySelector(".newmarquee-container"),r=n.offsetWidth,a=n.offsetHeight;r===e&&a===t?i++:i=0,e=r,t=a,i>=3?requestAnimationFrame(()=>{requestAnimationFrame(()=>{this.initialized||(this.initialized=!0,this.fadeMarquee(()=>this.animateMarquee()))})}):requestAnimationFrame(s)};requestAnimationFrame(s)}fadeMarquee(e){let t=this.shadowRoot.querySelector("#newmarquee-content");t.style.transition="opacity 0.5s ease",t.style.opacity="0",t.addEventListener("transitionend",()=>{t.style.opacity="1",t.style.transition="none",e()},{once:!0})}animateMarquee(){if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){this.marqueeContent.style.visibility="visible";return}let e=this.marqueeContent.scrollWidth,t=this.marqueeContent.scrollHeight,i=this.shadowRoot.querySelector(".newmarquee-container"),s=i.offsetWidth,n=i.offsetHeight;if(0===e||0===s||0===t||0===n){console.warn("MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS."),this.retriedAnimation||(this.retriedAnimation=!0,setTimeout(()=>this.animateMarquee(),100));return}this.retriedAnimation=!1;let r=parseInt(this.getAttribute("speed"),10)||50,a=this.getAttribute("direction")||"left",o,h;switch(this.marqueeContent.style.visibility="visible",a){case"right":this.marqueeContent.style.transform=`translateX(-${e}px)`,o=e/r,h=[{transform:`translateX(-${e}px)`},{transform:`translateX(${s}px)`}];break;case"up":this.marqueeContent.style.transform=`translateY(${n}px)`,o=t/r,h=[{transform:`translateY(${n}px)`},{transform:`translateY(-${t}px)`}];break;case"down":this.marqueeContent.style.transform=`translateY(-${t}px)`,o=t/r,h=[{transform:`translateY(-${t}px)`},{transform:`translateY(${n}px)`}];break;default:this.marqueeContent.style.transform=`translateX(${s}px)`,o=e/r,h=[{transform:`translateX(${s}px)`},{transform:`translateX(-${e}px)`}]}let l=this.marqueeContent.animate(h,{duration:1e3*o,iterations:1/0,easing:"linear"});this.currentAnimation=l,l.onfinish=()=>{this.currentAnimation=null}}addHoverListeners(){this.marqueeContent.addEventListener("mouseover",()=>{!this.isPaused&&(this.isPaused=!0,this.currentAnimation&&this.currentAnimation.pause())}),this.marqueeContent.addEventListener("mouseout",()=>{this.isPaused&&(this.isPaused=!1,this.currentAnimation&&this.currentAnimation.play())})}removeHoverListeners(){this.marqueeContent.removeEventListener("mouseover",()=>{}),this.marqueeContent.removeEventListener("mouseout",()=>{})}}customElements.define("new-marquee",NewMarquee);

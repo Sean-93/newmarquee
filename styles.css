@@ -10,10 +10,11 @@ a{
     width: 100%;
     height: 100%;
 }
-
 #newmarquee-content {
     white-space: nowrap;
     will-change: transform;
     display: inline-block;
-    visibility: hidden;
+    visibility: hidden; /* HIDE UNTIL LAYOUT IS STABLE */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
