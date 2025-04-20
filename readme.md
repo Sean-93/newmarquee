@@ -24,7 +24,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 <br>
 https://github.com/Sean-93/newmarquee/blob/main/src/newmarquee.js
 
-    <new-marquee speed="150" direction="left" pauseonhover="true">
+    <new-marquee speed="50" direction="left" pauseonhover="true">
         <div style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
@@ -58,7 +58,7 @@ https://github.com/Sean-93/newmarquee/blob/main/src/newmarquee.js
 <br>
 https://github.com/Sean-93/newmarquee/blob/main/src/no-shadow-dom.js
 
-    <section class="newmarquee-container" data-direction="left" data-speed="150" data-pauseonhover="true">
+    <section class="newmarquee-container" data-direction="left" data-speed="50" data-pauseonhover="true">
         <div id="newmarquee-content" style="display: flex; align-items: center;">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p><p>Magni repellat nemo nesciunt rerum asperiores assumenda ex quos dignissimos.</p>
         </div>
