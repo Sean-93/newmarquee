@@ -12,7 +12,7 @@ New Marquee is a small JavaScript library that allows you to use marquee-like fu
 
 ## Usage
 
-- The primary way to use this is with the custom Shadow-DOM <new-marquee> component provided, but there is also an alternate version where you can assign the 'newmarquee-content' ID to any HTML element that is the child of an element that has 'newmarquee-container' as a CSS class.
+- The primary way to use this is with the custom Shadow-DOM ```<new-marquee>``` component provided, but there is also an alternate version where you can assign the 'newmarquee-content' ID to any HTML element that is the child of an element that has 'newmarquee-container' as a CSS class.
 
 ### With 'newmarquee' Shadow DOM Element
 
@@ -68,4 +68,4 @@ https://github.com/Sean-93/newmarquee/blob/main/src/no-shadow-dom.js
 
 - If the direction attribute is left blank or with an invalid value, New Marquee will default to moving left.  The exception is if the HTML Lang attribute on the page is set to a language that primarily reads right to left on digital devices- then, the default will be to move right.
 
-☕️ Find this library helpful or fun? <a href="https://buymeacoffee.com/seanrooney" target="_blank">Buy me a coffee</a>
+Find this library helpful or fun? <a href="https://buymeacoffee.com/seanrooney" target="_blank">☕️ Buy me a coffee</a>
