@@ -1,135 +1,132 @@
-// DEFINE RIGHT-TO-LEFT (RTL) LANGUAGES THAT MAY AFFECT DEFAULT DIRECTION
+// DEFINE RIGHT-TO-LEFT (RTL) LANGUAGES
+// THESE ARE LANGUAGES THAT USE A RIGHT-TO-LEFT SCRIPT
 const RTL_LANGUAGES = ["ar", "he", "fa", "ur", "yi", "ps", "dv", "ug", "syr"];
 
-// DEFINE SAFE DIRECTIONS
+// DEFINE SAFE DIRECTION VALUES
+// THESE ARE THE DIRECTIONS THAT THE MARQUEE CAN MOVE SAFELY
 const SAFE_DIRECTIONS = ["left", "right", "up", "down"];
 
-// DEFINE NEW CUSTOM ELEMENT: NEW-MARQUEE
+// DEFINE NEW CUSTOM ELEMENT
+// THIS CREATES A NEW CUSTOM ELEMENT THAT WILL BE THE MARQUEE
 class NewMarquee extends HTMLElement {
     constructor() {
         super();
 
-        // CREATE SHADOW ROOT FOR ENCAPSULATED STYLING AND STRUCTURE
+        // CREATE SHADOW ROOT
+        // THIS ENSURES THAT STYLES AND STRUCTURE OF THE MARQUEE ARE ENCLOSED IN A SHADOW DOM
         this.attachShadow({ mode: 'open' });
 
-        // DEFINE HTML STRUCTURE AND STYLES FOR THE MARQUEE INSIDE SHADOW ROOT
-        this.shadowRoot.innerHTML = `
-            <style>
-                .newmarquee-container {
-                    display: block;
-                    max-width: 100%;
-                    margin: 0 auto;
-                    overflow: hidden;
-                    width: 100%;
-                    height: 100%;
-                }
-                #newmarquee-content {
-                    white-space: nowrap;
-                    will-change: transform;
-                    display: inline-block;
-                    visibility: hidden; /* HIDE UNTIL LAYOUT IS STABLE */
-                    transform-style: preserve-3d;
-                    backface-visibility: hidden;
-                }
-            </style>
-            <section class="newmarquee-container">
-                <div id="newmarquee-content">
-                    <slot></slot> <!-- ALLOW USER CONTENT -->
-                </div>
-            </section>
+        // BUILD STRUCTURE WITHOUT USING innerHTML
+        // CREATING THE STYLE AND ELEMENTS USING DOM METHODS INSTEAD OF innerHTML FOR SAFETY
+        const style = document.createElement('style');
+        style.textContent = `
+            .newmarquee-container {
+                display: block;
+                max-width: 100%;
+                margin: 0 auto;
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+            }
+            #newmarquee-content {
+                white-space: nowrap;
+                will-change: transform;
+                display: inline-block;
+                visibility: hidden;
+                transform-style: preserve-3d;
+                backface-visibility: hidden;
+            }
         `;
 
-        // STORE REFERENCE TO THE CONTENT WRAPPER
-        this.marqueeContent = this.shadowRoot.querySelector('#newmarquee-content');
+        // CONTAINER AND CONTENT ELEMENT CREATION
+        const container = document.createElement('section');
+        container.className = 'newmarquee-container';
 
-        // FLAG TO ENSURE ANIMATION STARTS ONLY ONCE
+        const content = document.createElement('div');
+        content.id = 'newmarquee-content';
+
+        // ADD SLOT TO ALLOW USER CONTENT INSIDE THE MARQUEE
+        const slot = document.createElement('slot');
+        content.appendChild(slot);
+        container.appendChild(content);
+
+        // APPEND STYLE AND CONTAINER TO THE SHADOW ROOT
+        this.shadowRoot.append(style, container);
+
+        // ELEMENT REFERENCES
+        this.marqueeContent = content;
+
+        // STATE FLAGS
         this.initialized = false;
-
-        // FLAG FOR PAUSE STATE
         this.isPaused = false;
+
+        // BINDINGS
+        this.boundResizeListener = this.onResize.bind(this);
+        this.boundVisibilityChangeListener = this.onVisibilityChange.bind(this);
+        this.boundLoadHandler = this.onWindowLoad.bind(this);
     }
 
     connectedCallback() {
-        // ENSURE EVERYTHING LOADS INCLUDING IMAGES BEFORE STARTING
-        window.addEventListener('load', () => {
-            this.ensureImagesLoaded(() => {
-                this.setDefaultDirection();
+        // LISTEN FOR WINDOW LOAD EVENT
+        window.addEventListener('load', this.boundLoadHandler, { once: true });
 
-                if (document.visibilityState !== 'visible') {
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.visibilityState === 'visible') {
-                            this.waitForLayoutAndStart();
-                        }
-                    }, { once: true });
-                } else {
-                    this.waitForLayoutAndStart();
-                }
-
-                // DEBOUNCED RESIZE LISTENER TO RE-CALCULATE MARQUEE
-                this.resizeListener = () => {
-                    clearTimeout(this.resizeTimeout);
-                    this.resizeTimeout = setTimeout(() => {
-                        const container = this.shadowRoot.querySelector('.newmarquee-container');
-                        if (!container) return;
-                        const containerWidth = container.offsetWidth;
-                        const containerHeight = container.offsetHeight;
-
-                        if (containerWidth !== this.lastContainerWidth || containerHeight !== this.lastContainerHeight) {
-                            this.lastContainerWidth = containerWidth;
-                            this.lastContainerHeight = containerHeight;
-                            this.fadeMarquee(() => this.animateMarquee());
-                        }
-                    }, 200);
-                };
-                window.addEventListener('resize', this.resizeListener);
-
-                // ENABLE HOVER PAUSE IF SPECIFIED
-                if (this.getAttribute('pauseonhover') === 'true') {
-                    this.addHoverListeners();
-                }
-            });
-        });
-
-        // WATCH FOR LANG ATTRIBUTE CHANGES TO UPDATE DIRECTION
+        // SET MUTATION OBSERVER TO WATCH FOR LANGUAGE CHANGES IN HTML
         this.observer = new MutationObserver(() => {
-            if (this.languageChangeTimeout) clearTimeout(this.languageChangeTimeout);
+            clearTimeout(this.languageChangeTimeout);
             this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
         });
         this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
     }
 
     disconnectedCallback() {
-        // CLEAN UP EVENT LISTENERS AND OBSERVERS
-        if (this.resizeListener) window.removeEventListener('resize', this.resizeListener);
-        if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
+        // CLEAN UP EVENT LISTENERS AND ANIMATIONS WHEN ELEMENT IS REMOVED
+        window.removeEventListener('resize', this.boundResizeListener);
+        document.removeEventListener('visibilitychange', this.boundVisibilityChangeListener);
+        window.removeEventListener('load', this.boundLoadHandler);
         if (this.currentAnimation) this.currentAnimation.cancel();
         if (this.progressUpdateInterval) clearInterval(this.progressUpdateInterval);
         if (this.observer) this.observer.disconnect();
+        if (this.getAttribute('pauseonhover') === 'true') this.removeHoverListeners();
     }
 
-    // ENSURE ALL IMAGES INSIDE THE SLOT HAVE FINISHED LOADING
+    onWindowLoad() {
+        // ENSURE IMAGES ARE LOADED BEFORE INITIALIZING MARQUEE
+        this.ensureImagesLoaded(() => {
+            this.setDefaultDirection();
+
+            // IF THE DOCUMENT IS NOT VISIBLE, WAIT FOR VISIBILITY CHANGE
+            if (document.visibilityState !== 'visible') {
+                document.addEventListener('visibilitychange', this.boundVisibilityChangeListener, { once: true });
+            } else {
+                this.waitForLayoutAndStart();
+            }
+
+            // ADD RESIZE EVENT LISTENER
+            window.addEventListener('resize', this.boundResizeListener, { passive: true });
+
+            // ADD HOVER LISTENERS IF PAUSEONHOVER IS TRUE
+            if (this.getAttribute('pauseonhover') === 'true') {
+                this.addHoverListeners();
+            }
+        });
+    }
+
     ensureImagesLoaded(callback) {
+        // ENSURE ALL IMAGES INSIDE THE MARQUEE ARE LOADED BEFORE CONTINUING
         const images = this.querySelectorAll('img');
         const promises = Array.from(images).map(img => new Promise(resolve => {
             if (img.complete && img.naturalHeight !== 0) {
                 resolve();
             } else {
                 img.addEventListener('load', resolve, { once: true });
-                img.addEventListener('error', resolve, { once: true }); // NEVER HANG IF IMAGE FAILS
+                img.addEventListener('error', resolve, { once: true });
             }
         }));
-        Promise.all(promises).then(callback).catch(error => console.error('ERROR LOADING IMAGES:', error));
+        Promise.all(promises).then(callback).catch(callback);
     }
 
-    // SANITIZE CONTENT TO PREVENT XSS ATTACKS
-    sanitizeContent(content) {
-        const div = document.createElement('div');
-        div.textContent = content;  // This automatically escapes any HTML
-        return div.innerHTML;
-    }
-
-    // SET DEFAULT DIRECTION BASED ON LANGUAGE
     setDefaultDirection() {
+        // SET THE DEFAULT DIRECTION OF THE MARQUEE BASED ON THE LANGUAGE ATTRIBUTE
         const htmlLang = (document.documentElement.lang || "").toLowerCase();
         const directionAttr = (this.getAttribute('direction') || '').toLowerCase();
         if (RTL_LANGUAGES.includes(htmlLang) && !SAFE_DIRECTIONS.includes(directionAttr)) {
@@ -137,8 +134,8 @@ class NewMarquee extends HTMLElement {
         }
     }
 
-    // WAIT FOR STABLE LAYOUT BEFORE STARTING ANIMATION
     waitForLayoutAndStart() {
+        // THIS FUNCTION AWAITS STABILITY IN THE LAYOUT BEFORE STARTING THE ANIMATION
         let previousWidth = 0;
         let previousHeight = 0;
         let stableFrames = 0;
@@ -146,6 +143,7 @@ class NewMarquee extends HTMLElement {
         const checkStability = () => {
             const container = this.shadowRoot.querySelector('.newmarquee-container');
             if (!container) return;
+
             const width = container.offsetWidth;
             const height = container.offsetHeight;
 
@@ -160,12 +158,10 @@ class NewMarquee extends HTMLElement {
 
             if (stableFrames >= 3) {
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (!this.initialized) {
-                            this.initialized = true;
-                            this.fadeMarquee(() => this.animateMarquee());
-                        }
-                    });
+                    if (!this.initialized) {
+                        this.initialized = true;
+                        this.fadeMarquee(() => this.animateMarquee());
+                    }
                 });
             } else {
                 requestAnimationFrame(checkStability);
@@ -175,23 +171,27 @@ class NewMarquee extends HTMLElement {
         requestAnimationFrame(checkStability);
     }
 
-    // FADE OUT AND FADE IN MARQUEE BEFORE RESTARTING ANIMATION
     fadeMarquee(callback) {
-        const content = this.shadowRoot.querySelector('#newmarquee-content');
-        if (!content) return;
+        // FADE IN THE MARQUEE CONTENT BEFORE ANIMATION STARTS
+        if (!this.marqueeContent) return;
 
-        content.style.transition = 'opacity 0.5s ease';
-        content.style.opacity = '0';
+        this.marqueeContent.style.transition = 'opacity 0.5s ease';
+        this.marqueeContent.style.opacity = '0';
 
-        content.addEventListener('transitionend', () => {
-            content.style.opacity = '1';
-            content.style.transition = 'none'; // REMOVE TRANSITION FOR THE NEXT ANIMATION CYCLE
+        const handleTransitionEnd = () => {
+            this.marqueeContent.style.opacity = '1';
+            this.marqueeContent.style.transition = 'none';
             if (typeof callback === 'function') callback();
-        }, { once: true });
+        };
+
+        this.marqueeContent.addEventListener('transitionend', handleTransitionEnd, { once: true });
     }
 
-    // MAIN ANIMATION LOGIC
     animateMarquee() {
+        // THIS FUNCTION HANDLES THE ANIMATION OF THE MARQUEE BASED ON THE DIRECTION AND SPEED
+        if (!this.marqueeContent) return;
+
+        // IF THE USER PREFERS REDUCED MOTION, SKIP ANIMATION
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.marqueeContent.style.visibility = 'visible';
             return;
@@ -201,11 +201,11 @@ class NewMarquee extends HTMLElement {
         const marqueeHeight = this.marqueeContent.scrollHeight;
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         if (!container) return;
+
         const containerWidth = container.offsetWidth;
         const containerHeight = container.offsetHeight;
 
         if (marqueeWidth === 0 || containerWidth === 0 || marqueeHeight === 0 || containerHeight === 0) {
-            console.warn('MARQUEE ANIMATION SKIPPED: INVALID DIMENSIONS.');
             if (!this.retriedAnimation) {
                 this.retriedAnimation = true;
                 setTimeout(() => this.animateMarquee(), 100);
@@ -214,20 +214,19 @@ class NewMarquee extends HTMLElement {
         }
 
         this.retriedAnimation = false;
+        this.marqueeContent.style.visibility = 'visible';
 
         const DEFAULT_SPEED = 50;
         let speed = parseInt(this.getAttribute('speed'), 10);
-        if (isNaN(speed) || speed <= 0 || speed > 1000) speed = DEFAULT_SPEED; // SANITIZE SPEED
+        if (!Number.isFinite(speed) || speed <= 0 || speed > 1000) speed = DEFAULT_SPEED;
+
         let direction = (this.getAttribute('direction') || 'left').toLowerCase();
-        if (!SAFE_DIRECTIONS.includes(direction)) direction = 'left'; // SANITIZE DIRECTION
+        if (!SAFE_DIRECTIONS.includes(direction)) direction = 'left';
 
         let animationDuration, keyframes;
 
-        this.marqueeContent.style.visibility = 'visible';
-
         switch (direction) {
             case 'right':
-                this.marqueeContent.style.transform = `translateX(-${marqueeWidth}px)`;
                 animationDuration = marqueeWidth / speed;
                 keyframes = [
                     { transform: `translateX(-${marqueeWidth}px)` },
@@ -235,7 +234,6 @@ class NewMarquee extends HTMLElement {
                 ];
                 break;
             case 'up':
-                this.marqueeContent.style.transform = `translateY(${containerHeight}px)`;
                 animationDuration = marqueeHeight / speed;
                 keyframes = [
                     { transform: `translateY(${containerHeight}px)` },
@@ -243,15 +241,13 @@ class NewMarquee extends HTMLElement {
                 ];
                 break;
             case 'down':
-                this.marqueeContent.style.transform = `translateY(-${marqueeHeight}px)`;
                 animationDuration = marqueeHeight / speed;
                 keyframes = [
                     { transform: `translateY(-${marqueeHeight}px)` },
                     { transform: `translateY(${containerHeight}px)` }
                 ];
                 break;
-            default: // left
-                this.marqueeContent.style.transform = `translateX(${containerWidth}px)`;
+            default: // 'left'
                 animationDuration = marqueeWidth / speed;
                 keyframes = [
                     { transform: `translateX(${containerWidth}px)` },
@@ -260,7 +256,10 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        // START THE ANIMATION USING THE KEYFRAMES AND DURATION
+        // CANCEL THE PREVIOUS ANIMATION IF IT EXISTS
+        if (this.currentAnimation) this.currentAnimation.cancel();
+
+        // START A NEW ANIMATION
         this.currentAnimation = this.marqueeContent.animate(keyframes, {
             duration: animationDuration * 1000,
             iterations: Infinity,
@@ -268,28 +267,59 @@ class NewMarquee extends HTMLElement {
         });
     }
 
-    // PAUSE ANIMATION ON HOVER
     addHoverListeners() {
-        const hoverHandler = () => {
+        // ADD LISTENERS TO PAUSE AND RESUME THE ANIMATION ON MOUSE ENTER/LEAVE
+        if (!this.marqueeContent) return;
+
+        this.hoverHandler = () => {
             this.isPaused = true;
             if (this.currentAnimation) this.currentAnimation.pause();
         };
-
-        const resumeHandler = () => {
+        this.resumeHandler = () => {
             this.isPaused = false;
             if (this.currentAnimation) this.currentAnimation.play();
         };
 
-        this.marqueeContent.addEventListener('mouseenter', hoverHandler);
-        this.marqueeContent.addEventListener('mouseleave', resumeHandler);
+        this.marqueeContent.addEventListener('mouseenter', this.hoverHandler);
+        this.marqueeContent.addEventListener('mouseleave', this.resumeHandler);
     }
 
-    // REMOVE HOVER LISTENERS TO AVOID MEMORY LEAKS
     removeHoverListeners() {
-        this.marqueeContent.removeEventListener('mouseenter', this.hoverHandler);
-        this.marqueeContent.removeEventListener('mouseleave', this.resumeHandler);
+        // REMOVE HOVER EVENT LISTENERS WHEN THEY'RE NO LONGER NEEDED
+        if (!this.marqueeContent) return;
+
+        if (this.hoverHandler) this.marqueeContent.removeEventListener('mouseenter', this.hoverHandler);
+        if (this.resumeHandler) this.marqueeContent.removeEventListener('mouseleave', this.resumeHandler);
+    }
+
+    onResize() {
+        // HANDLES RESIZE EVENTS TO RESTART THE ANIMATION IF CONTAINER SIZE CHANGES
+        const container = this.shadowRoot.querySelector('.newmarquee-container');
+        if (!container) return;
+
+        const currentWidth = container.offsetWidth;
+        const currentHeight = container.offsetHeight;
+
+        if (currentWidth !== this.lastWidth || currentHeight !== this.lastHeight) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => {
+                if (!this.marqueeContent) return;
+                this.fadeMarquee(() => this.animateMarquee());
+            }, 200);
+        }
+
+        this.lastWidth = currentWidth;
+        this.lastHeight = currentHeight;
+    }
+
+    onVisibilityChange() {
+        // HANDLE VISIBILITY CHANGES AND RESTART ANIMATION IF NEEDED
+        if (document.visibilityState === 'visible') {
+            this.waitForLayoutAndStart();
+        }
     }
 }
 
-// DEFINE THE CUSTOM ELEMENT
+// REGISTER THE CUSTOM ELEMENT
+// THIS MAKES THE "new-marquee" ELEMENT USABLE IN HTML
 customElements.define('new-marquee', NewMarquee);
