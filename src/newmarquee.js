@@ -1,7 +1,3 @@
-// DEFINE RIGHT-TO-LEFT (RTL) LANGUAGES
-// THESE ARE LANGUAGES THAT USE A RIGHT-TO-LEFT SCRIPT
-const RTL_LANGUAGES = ["ar", "he", "fa", "ur", "yi", "ps", "dv", "ug", "syr"];
-
 // DEFINE SAFE DIRECTION VALUES
 // THESE ARE THE DIRECTIONS THAT THE MARQUEE CAN MOVE SAFELY
 const SAFE_DIRECTIONS = ["left", "right", "up", "down"];
@@ -17,7 +13,6 @@ class NewMarquee extends HTMLElement {
         this.attachShadow({ mode: 'open' });
 
         // BUILD STRUCTURE WITHOUT USING innerHTML
-        // CREATING THE STYLE AND ELEMENTS USING DOM METHODS INSTEAD OF innerHTML FOR SAFETY
         const style = document.createElement('style');
         style.textContent = `
             .newmarquee-container {
@@ -70,12 +65,12 @@ class NewMarquee extends HTMLElement {
         // LISTEN FOR WINDOW LOAD EVENT
         window.addEventListener('load', this.boundLoadHandler, { once: true });
 
-        // SET MUTATION OBSERVER TO WATCH FOR LANGUAGE CHANGES IN HTML
+        // SET MUTATION OBSERVER TO WATCH FOR DIR CHANGES IN HTML
         this.observer = new MutationObserver(() => {
-            clearTimeout(this.languageChangeTimeout);
-            this.languageChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
+            clearTimeout(this.dirChangeTimeout);
+            this.dirChangeTimeout = setTimeout(() => this.setDefaultDirection(), 100);
         });
-        this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+        this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
     }
 
     disconnectedCallback() {
@@ -126,16 +121,22 @@ class NewMarquee extends HTMLElement {
     }
 
     setDefaultDirection() {
-        // SET THE DEFAULT DIRECTION OF THE MARQUEE BASED ON THE LANGUAGE ATTRIBUTE
-        const htmlLang = (document.documentElement.lang || "").toLowerCase();
+        // SET THE DEFAULT DIRECTION OF THE MARQUEE
+        // 1. IF A direction="" ATTRIBUTE IS SET ON <new-marquee>, RESPECT IT
+        // 2. OTHERWISE, SET DEFAULT BASED ON <html dir="rtl"> OR <html dir="ltr">
         const directionAttr = (this.getAttribute('direction') || '').toLowerCase();
-        if (RTL_LANGUAGES.includes(htmlLang) && !SAFE_DIRECTIONS.includes(directionAttr)) {
-            this.setAttribute('direction', 'right');
+        if (!SAFE_DIRECTIONS.includes(directionAttr)) {
+            const htmlDir = (document.documentElement.getAttribute('dir') || 'ltr').toLowerCase();
+            if (htmlDir === 'rtl') {
+                this.setAttribute('direction', 'right');
+            } else {
+                this.setAttribute('direction', 'left');
+            }
         }
     }
 
     waitForLayoutAndStart() {
-        // THIS FUNCTION AWAITS STABILITY IN THE LAYOUT BEFORE STARTING THE ANIMATION
+        // AWAIT STABILITY IN THE LAYOUT BEFORE STARTING THE ANIMATION
         let previousWidth = 0;
         let previousHeight = 0;
         let stableFrames = 0;
@@ -188,10 +189,10 @@ class NewMarquee extends HTMLElement {
     }
 
     animateMarquee() {
-        // THIS FUNCTION HANDLES THE ANIMATION OF THE MARQUEE BASED ON THE DIRECTION AND SPEED
+        // HANDLE THE MARQUEE ANIMATION BASED ON DIRECTION AND SPEED
         if (!this.marqueeContent) return;
 
-        // IF THE USER PREFERS REDUCED MOTION, SKIP ANIMATION
+        // IF USER PREFERS REDUCED MOTION, SKIP ANIMATION
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.marqueeContent.style.visibility = 'visible';
             return;
@@ -256,7 +257,7 @@ class NewMarquee extends HTMLElement {
                 break;
         }
 
-        // CANCEL THE PREVIOUS ANIMATION IF IT EXISTS
+        // CANCEL PREVIOUS ANIMATION IF EXISTS
         if (this.currentAnimation) this.currentAnimation.cancel();
 
         // START A NEW ANIMATION
@@ -268,7 +269,7 @@ class NewMarquee extends HTMLElement {
     }
 
     addHoverListeners() {
-        // ADD LISTENERS TO PAUSE AND RESUME THE ANIMATION ON MOUSE ENTER/LEAVE
+        // ADD LISTENERS TO PAUSE AND RESUME ANIMATION ON MOUSE ENTER/LEAVE
         if (!this.marqueeContent) return;
 
         this.hoverHandler = () => {
@@ -285,7 +286,7 @@ class NewMarquee extends HTMLElement {
     }
 
     removeHoverListeners() {
-        // REMOVE HOVER EVENT LISTENERS WHEN THEY'RE NO LONGER NEEDED
+        // REMOVE HOVER EVENT LISTENERS
         if (!this.marqueeContent) return;
 
         if (this.hoverHandler) this.marqueeContent.removeEventListener('mouseenter', this.hoverHandler);
@@ -293,7 +294,7 @@ class NewMarquee extends HTMLElement {
     }
 
     onResize() {
-        // HANDLES RESIZE EVENTS TO RESTART THE ANIMATION IF CONTAINER SIZE CHANGES
+        // HANDLE RESIZE EVENTS TO RESTART ANIMATION IF SIZE CHANGES
         const container = this.shadowRoot.querySelector('.newmarquee-container');
         if (!container) return;
 
@@ -304,7 +305,8 @@ class NewMarquee extends HTMLElement {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = setTimeout(() => {
                 if (!this.marqueeContent) return;
-                this.fadeMarquee(() => this.animateMarquee());
+                if (this.currentAnimation) this.currentAnimation.cancel();
+                this.animateMarquee();
             }, 200);
         }
 
@@ -313,13 +315,12 @@ class NewMarquee extends HTMLElement {
     }
 
     onVisibilityChange() {
-        // HANDLE VISIBILITY CHANGES AND RESTART ANIMATION IF NEEDED
+        // START ANIMATION WHEN DOCUMENT BECOMES VISIBLE
         if (document.visibilityState === 'visible') {
             this.waitForLayoutAndStart();
         }
     }
 }
 
-// REGISTER THE CUSTOM ELEMENT
-// THIS MAKES THE "new-marquee" ELEMENT USABLE IN HTML
+// DEFINE THE CUSTOM ELEMENT
 customElements.define('new-marquee', NewMarquee);
